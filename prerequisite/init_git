@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# config git global settings.
+
+git config --global user.name "jiang zhu"
+git config --global user.email "m.zhujiang@gmail.com"
+git config --global color.ui true
+
+# add more settings

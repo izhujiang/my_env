@@ -1,0 +1,19 @@
+# useful functions for being called by shell and vim/nvim filter
+sample (){
+  echo "define useful toolkits(functions) defined with shell script."
+  echo "call function in bash/zsh"
+  echo "use filter command [!!][!}|!G|...] to call the functions in vim/nvim"
+}
+
+hello (){
+  printf "hello shell-toolkit\n"
+  printf "plz define some useful functions for being called by shell and vim/nvim filter\n"
+}
+
+now() {
+  echo $1 $(date "+%A, %B %e, %Y - %l:%M:%s%p")
+}
+
+hnow() {
+        echo $(printf '#%.0s' {1..2}) $(now)
+}

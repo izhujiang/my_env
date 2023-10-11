@@ -1,0 +1,34 @@
+#!/bin/sh
+# my_ide as my default sofeware development environment
+# config tmux multi-win and multi-pan including tmux, vim and execution environment
+# name     : tmuxen， tmux environment made easy
+# author   : zhujiang m.zhujiang@gmail.com
+# created  : 2016 Jul 01
+
+
+cmd=$(which tmux) # tmux path
+if [ -z $cmd ]; then
+  echo "installing tmux."
+  brew install tmux
+  # exit 1
+fi
+
+dev_session="dev"
+dev_root="${HOME}/workspace/dev"
+
+tmux has-session -t $dev_session
+if [ $? != 0 ]
+then
+  tmux new-session -s $dev_session -n editor -c "$dev_root" -d
+  tmux split-window -v -t $dev_session -c "$dev_root"
+  tmux select-layout -t $dev_session main-horizontal
+  # tmux send-keys -t $dev_session:1.2 $default_init_cmd C-m
+  tmux new-window -n console -t $dev_session -c "$dev_root"
+  # tmux send-keys -t $dev_session:2 $default_init_cmd C-m
+  tmux select-window -t $dev_session:1
+  tmux select-pane -t:.1
+  tmux send-keys -t $dev_session 'vi' C-m
+fi
+tmux attach -t $dev_session
+
+exit 0

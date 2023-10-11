@@ -1,0 +1,19 @@
+#!/bin/bash
+
+CUR_SHELL=$("${SHELL}")
+# echo ${CUR_SHELL}
+ZSH="zsh"
+if [[ ${CUR_SHELL} == *${ZSH}* ]]; then
+  echo "zsh has been installed and set as default shell."
+else
+  echo "zsh has not been installed or set as default shell, so it will install zsh and oh-my-zsh first..."
+  sudo apt install -y zsh git curl xclip
+  rm -rf ~/.oh-my-zsh
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sed 's:env zsh -l::g' | sed 's:chsh -s .*$::g' | sed '/chsh -s/d')"
+  chsh -s "$(which zsh)"
+
+  echo ""
+  echo "zsh and oh-my-zsh has been installed and set as default shell, now quit gnome session automatically, please run the boot script again after re-login."
+  read -rp "Press any key to continue ..."
+  gnome-session-quit
+fi
