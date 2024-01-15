@@ -14,9 +14,11 @@ installVimPlugins() {
   done
 
   ln -s "${dotfiles_dir}/vim" "${HOME}/.vim"
-  ln -s "${dotfiles_dir}/nvim" "${HOME}/.config/nvim"
-  ln -s "${dotfiles_dir}/lvim" "${HOME}/.config/lvim"
   ln -s "${HOME}/.vim/.vimrc" "${HOME}/.vimrc"
+
+  # TODO: using repo dynamically
+  ln -s "${HOME}/repo/LeoVim" "${HOME}/.config/nvim"
+  ln -s "${HOME}/repo/lvim" "${HOME}/.config/lvim"
 
   if [ -x "$(which vim)" ]; then
     printf "start configing vim plugins...\n"

@@ -61,6 +61,7 @@ installNodejsPackages() {
   npm install -g lighthouse   # The Node CLI provides the most flexibility in how Lighthouse runs can be configured and reported.
 
   npm install -g tree-sitter-cli
+  npm install -g @microsoft/inshellisense # IDE style command line auto complete by microsoft
 }
 
 # installRustPackages() {

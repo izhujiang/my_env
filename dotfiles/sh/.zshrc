@@ -26,11 +26,16 @@ ZSH_DISABLE_COMPFIX=true
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
+# ZSH_THEME="amuse"
+# ZSH_THEME="avit"
+# ZSH_THEME="bureau"
 # ZSH_THEME="imajes"
-# ZSH_THEME="kolo"
-# ZSH_THEME="linuxonly"
+ZSH_THEME="kolo"  # simple style
 # ZSH_THEME="rgm"
-ZSH_THEME="sammy"
+# ZSH_THEME="sammy"
+
+# POWERLINE_ZSH=${PY_PACKS_LOC}/powerline/bindings/zsh/powerline.zsh
+# test -e ${POWERLINE_ZSH} && . ${POWERLINE_ZSH}
 
 # Uncomment the following line to use case-eensitive completion.
 # CASE_SENSITIVE="true"
@@ -100,11 +105,10 @@ test -e ${HOMEBREW_PREFIX}/etc/profile.d/autojump.sh  && source ${HOMEBREW_PREFI
 # add fzf to zsh
 [ -e ${HOME}/.fzf.zsh ] && . ${HOME}/.fzf.zsh
 
-POWERLINE_ZSH=${PY_PACKS_LOC}/powerline/bindings/zsh/powerline.zsh
-test -e ${POWERLINE_ZSH} && . ${POWERLINE_ZSH}
-
 [ -e ${HOME}/.local/scripts/.zshrc.local ] && . ${HOME}/.local/scripts/.zshrc.local
 # unsetopt xtrace
 # exec 2>&3 3>&-
 
 # zprof
+
+[ -f ~/.inshellisense/key-bindings.zsh ] && source ~/.inshellisense/key-bindings.zsh

@@ -31,7 +31,11 @@ installPackagesWithApt() {
   . "${HOME}/.cargo/env"
 
   # Node.js LTS
-  curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+  sudo apt install nodejs
+  # option2: To install a different version of Node.js, you can use a PPA (personal package archive) maintained by NodeSource.
+  # curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+  # Option 3 — Installing Node Using the Node Version Manager (https://github.com/nvm-sh/nvm)
+
   sudo apt install -y golang-go
   sudo apt install -y python3 python3-dev python3-pip ruby ruby-html2haml ruby-dev default-jdk nodejs npm yarn jq
   python3 -m pip install --upgrade pip

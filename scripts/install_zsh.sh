@@ -44,6 +44,7 @@ installZshPlugins() {
       cd "${ZSH_CUSTOM}"/plugins/${plugin} && git pull
     fi
   done
+}
 
 configBashZsh() {
   # cd ${HOME}
