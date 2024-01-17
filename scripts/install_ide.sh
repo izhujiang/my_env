@@ -9,7 +9,6 @@ installVimPlugins() {
   dotfiles_dir="$(dirname "${PWD}")/dotfiles"
 
   for CFG_FILE in .editorconfig .ycm_extra_conf.py .czrc .golangci.yml; do
-    # curl -fsSL --create-dirs -o "${HOME}/${CFG_FILE}" "https://raw.githubusercontent.com/izhujiang/my_env/master/dotfiles/vi/${CFG_FILE}"
     ln -s "${dotfiles_dir}/sh/${CFG_FILE}" "${HOME}/${CFG_FILE}"
   done
 
@@ -17,6 +16,8 @@ installVimPlugins() {
   ln -s "${HOME}/.vim/.vimrc" "${HOME}/.vimrc"
 
   # TODO: using repo dynamically
+  git clone https://github.com/izhujiang/LeoVim.git "${HOME}/repo/LeoVim"
+  git clone https://github.com/izhujiang/lvim.git "${HOME}/repo/lvim"
   ln -s "${HOME}/repo/LeoVim" "${HOME}/.config/nvim"
   ln -s "${HOME}/repo/lvim" "${HOME}/.config/lvim"
 

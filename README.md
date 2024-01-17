@@ -28,11 +28,27 @@ or if you don't have permission to use chsh.
   + check the following instructions here: [Installing ZSH](https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH)
   + Make it your default shell: chsh -s $(which zsh)<br>
 
+
++ "caps lock" -> "esc", optional.
+  + linux:
+    
+    open /etc/default/keyboard, set [ref:](https://thesynack.com/posts/persistent-capslock-behavior/)
+  `XKBOPTIONS="caps:escape_shifted_capslock`
+
+    restart needed.
+
+  + macOS:
+
+    open System Settings… > Keyboard > Keyboard Shortcuts > Modifier Keys.
+
+
 ### Installation
 
+```
   git clone https://github.com/izhujiang/my_env ~/repo/my_env
   cd ~/repo/my_env/scripts
   sudo ./my_env_boot.sh
+```
 
 <br>
 Notes:<br>

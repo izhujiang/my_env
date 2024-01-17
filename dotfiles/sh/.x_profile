@@ -107,5 +107,8 @@ fi
 # but a dynamic one is required. You must use a Python compiled with the --enable-framework flag. If using pyenv, you need to run the command:
 # export PYTHON_CONFIGURE_OPTS="--enable-framework"
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+
 # global npm package
 export PATH="${HOME}/.local/bin:${PATH}"

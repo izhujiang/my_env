@@ -6,39 +6,30 @@ installPackagesWithApt() {
   # To be able to use add-apt-repository, need to install software-properties-common
   sudo apt install -y apt-transport-https ca-certificates gnupg-agent software-properties-common
 
-  # curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  # sudo add-apt-repository -y \
-  # "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-  # $(lsb_release -cs) \
-  # stable"
-
   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
   sudo add-apt-repository -y "deb https://dl.yarnpkg.com/debian/ stable main"
-
   sudo add-apt-repository -y ppa:longsleep/golang-backports
+  # sudo add-apt-repository -y ppa:neovim-ppa/stable
   sudo apt update -y
 
   sudo apt install -y build-essential curl file wget zsh git
   sudo apt install -y cmake autoconf xclip ack fzf bat fd-find spell shellcheck net-tools openssh-server
   sudo apt install -y libtool libtool-bin libbz2-dev zlib1g-dev libgd-dev libreadline-dev libsqlite3-dev libssl-dev libffi-dev
   sudo apt install -y libpcre3 libpcre3-dev openssl libssl-dev libcanberra-gtk-module
-  sudo apt install -y tmux autojump astyle prettyping
+  sudo apt install -y tmux autojump prettyping jq
 
   # include rustc, cargo and rust-gdb
   curl https://sh.rustup.rs -sSf -y | sh -s -- -y
 
-  # shellcheck disable=SC1090
   . "${HOME}/.cargo/env"
 
-  # Node.js LTS
-  sudo apt install nodejs
-  # option2: To install a different version of Node.js, you can use a PPA (personal package archive) maintained by NodeSource.
-  # curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-  # Option 3 — Installing Node Using the Node Version Manager (https://github.com/nvm-sh/nvm)
+  sudo apt install -y golang-go python3 python3-dev python3-pip ruby ruby-html2haml ruby-dev default-jdk
 
-  sudo apt install -y golang-go
-  sudo apt install -y python3 python3-dev python3-pip ruby ruby-html2haml ruby-dev default-jdk nodejs npm yarn jq
-  python3 -m pip install --upgrade pip
+  # install nodejs LTS via nvm
+  git clone https://github.com/nvm-sh/nvm.git "${HOME}/.nvm"
+  source "${HOME}/.nvm/nvm.sh"
+  nvm install --lts
+
   curl https://pyenv.run | bash
 
   # echo "Download Oracle JDK from oracle website and install it to ${HOME}/java like ${HOME}/java/jdk-10, if you prefer oracle jdk instead."
@@ -48,11 +39,6 @@ installPackagesWithApt() {
 
   printf "You may install nginx from sourcecode instead.\n"
   sudo apt install -y nginx
-
-  # ppa:neovim-ppa/stable to your system's Software Sources, Before 18.04 Neovim has been added to a "Personal Package Archive" (PPA)
-  sudo add-apt-repository -y ppa:neovim-ppa/stable
-  sudo apt-get update
-  # update apt source after adding repository
 
   # sudo apt install -y docker-ce docker-ce-cli containerd.io
 
@@ -64,7 +50,13 @@ installPackagesWithApt() {
   # printf "On Linux, you can also run the following command to activate the changes to groups:\n"
   # printf " # newgrp docker   \n"
 
-  sudo apt install -y vim neovim
+  # sudo apt install -y vim neovim
+  sudo apt install -y gettext
+  git clone https://github.com/neovim/neovim.git ${HOME}/workspace/neovim
+  cd ${HOME}/workspace/neovim
+  make CMAKE_BUILD_TYPE=RelWithDebInfo
+  sudo make install
+  cd -
 }
 
 postInstallWithApt() {

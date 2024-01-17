@@ -34,33 +34,22 @@ checkPrerequisitesAndInstallEssentials() {
   printf "boot up on %s ...\n" "${SYSOS}"
 
   # checking packages for build programmes, and install it if not available
-  checkAndInstallBase || return 1
+  checkAndInstallEssentials || return 1
+  SetupHomebrew
 
-  installViaHomebrew || return 1
-
-  # temporarily walk around building m1 on ubuntu 20.04
-  # if HOMEBREW is not available
-
-  # if [ "${DISTRO}" = "Ubuntu" ]; then
-  #     if [ ! -d "${HOMEBREW_REPOSITORY}" ]; then
-  #         # 1. install all libs, packages and tools
-  #         printf "install essential packages ...\n"
-  #         sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_packs_ubuntu.sh)"
-  #         # ./install_packs_ubuntu.sh
-  #     fi
-  # fi
+  return 0
 }
 
-installViaHomebrew() {
-  if [ "${SYSOS}" = "Linux" ]; then
+SetupHomebrew() {
+  if [ "${SYSOS}" = "Darwin" ]; then
+    # just skip
+    printf "\n"
+  elif [ "${SYSOS}" = "Linux" ] && [ "${UNAME_MACHINE}" = "x86_64" ]; then
     # enable install linuxbrew silently into HOMEBREW
     printf "The prefix /home/linuxbrew/.linuxbrew was chosen, so users without admin access can benefit from precompiled binaries.\n"
     printf "If do not have admin privileges, ask the admins to create a linuxbrew role account with home directory /home/linuxbrew.\n"
-  elif [ "${SYSOS}" = "Darwin" ]; then
-    # just skip
-    printf "\n"
   else
-    printf "HOMEBREW does not support on %s \n." "${SYSOS}"
+    printf "HOMEBREW does not support on %s/%s \n." "${SYSOS}" "${UNAME_MACHINE}"
     return 1
   fi
 
@@ -76,9 +65,8 @@ installViaHomebrew() {
 }
 
 # check build-essential/base-devel, git, curl and file in system path, all the prerequisites of brew
-checkAndInstallBase() {
+checkAndInstallEssentials() {
   if [ "${SYSOS}" = "Darwin" ]; then
-    printf "boot up on mac ...\n"
     # printf "todo: checking xcode-select\n"
     # xcode-select --install
     COMMANDLINETOOLS_HOME=/Library/Developer/CommandLineTools
@@ -203,12 +191,19 @@ checkAndInstallBase() {
 }
 
 # --------------------------------------------------------------------------
-# run as non-root or non-sudoer
-setupNonAdminEnv() {
+installPackages() {
   if [ -d "${HOMEBREW_REPOSITORY}" ]; then
     # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_packs.sh)"
-    ./install_packs.sh
+    ./install_packs_brew.sh
+  else
+    # linuxbrew is not supported on arm platform.
+    if [ "${UNAME_MACHINE}" = "aarch64" ] && [ "${DISTRO}" = "Ubuntu" ]; then
+      ./install_packs_ubuntu.sh
+    else
+      return 1
+    fi
   fi
+
   printf "install extras packages ...\n"
   # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_extras.sh)"
   ./install_extras.sh
@@ -289,13 +284,13 @@ getLinuxDist() {
     DISTRO='unknow'
   fi
 
-  echo "$PM"
+  # echo "$PM"
 }
 
 bootup() {
   checkPrerequisitesAndInstallEssentials || return 1
 
-  setupNonAdminEnv
+  installPackages || return 1
   postInstall
 
   # optional: install ohmyzsh when zsh exists

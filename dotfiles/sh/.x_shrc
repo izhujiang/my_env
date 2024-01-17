@@ -28,12 +28,12 @@ alias vi=vim
 alias lv=lvim
 # don't run nvim inside nvim
 if [ -n "$NVIM_LISTEN_ADDRESS" ]; then
-	# if [ -x "$(command -v nvr)" ]; then
-	#     # echo "using nvr instead nvim"
-	#     alias nvim=nvr
-	# else
-	alias nvim='echo "No nesting nvim!\nUsing:\nnvr [-loOp] <file> [<file>...]"'
-	# fi
+# if [ -x "$(command -v nvr)" ]; then
+#     # echo "using nvr instead nvim"
+#     alias nvim=nvr
+# else
+  alias nvim='echo "No nesting nvim!\nUsing:\nnvr [-loOp] <file> [<file>...]"'
+# fi
 fi
 # floaterm somefile.txt, open files from within : terminal without starting a nested nvim.
 alias ft="~/.vim/plugged/vim-floaterm/bin/floaterm"
