@@ -31,9 +31,9 @@ or if you don't have permission to use chsh.
 
 + "caps lock" -> "esc", optional.
   + linux:
-    
+
     open /etc/default/keyboard, set [ref:](https://thesynack.com/posts/persistent-capslock-behavior/)
-  `XKBOPTIONS="caps:escape_shifted_capslock`
+  `XKBOPTIONS="caps:escape_shifted_capslock"`
 
     restart needed.
 

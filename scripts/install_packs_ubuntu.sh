@@ -13,7 +13,7 @@ installPackagesWithApt() {
   sudo apt update -y
 
   sudo apt install -y build-essential curl file wget zsh git
-  sudo apt install -y cmake autoconf xclip ack fzf bat fd-find spell shellcheck net-tools openssh-server
+  sudo apt install -y cmake autoconf xclip ack fzf bat fd-find ripgrep spell shellcheck net-tools openssh-server
   sudo apt install -y libtool libtool-bin libbz2-dev zlib1g-dev libgd-dev libreadline-dev libsqlite3-dev libssl-dev libffi-dev
   sudo apt install -y libpcre3 libpcre3-dev openssl libssl-dev libcanberra-gtk-module
   sudo apt install -y tmux autojump prettyping jq
@@ -23,14 +23,13 @@ installPackagesWithApt() {
 
   . "${HOME}/.cargo/env"
 
-  sudo apt install -y golang-go python3 python3-dev python3-pip ruby ruby-html2haml ruby-dev default-jdk
+  sudo apt install -y golang-go python3 python3-dev python3-pip python3-venv ruby ruby-html2haml ruby-dev default-jdk
+  curl https://pyenv.run | bash
 
   # install nodejs LTS via nvm
   git clone https://github.com/nvm-sh/nvm.git "${HOME}/.nvm"
   source "${HOME}/.nvm/nvm.sh"
   nvm install --lts
-
-  curl https://pyenv.run | bash
 
   # echo "Download Oracle JDK from oracle website and install it to ${HOME}/java like ${HOME}/java/jdk-10, if you prefer oracle jdk instead."
   # curl -s "https://get.sdkman.io" | bash
