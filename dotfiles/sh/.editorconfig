@@ -22,9 +22,10 @@ tab_width = 2
 # indent_style = space
 # indent_size = 2
 
-[*.go]
+[*.{go,mod}]
 indent_style = tab
-tab_width = 2
+indent_size = 4
+tab_width = 4
 
 # Tab indentation (no size specified)
 [Makefile]
@@ -36,14 +37,14 @@ indent_style = tab
 [*.{py,pyi,java,awk}]
 indent_style = space
 indent_size = 4
+tab_width = 4
 
 [*.astro]
 indent_style = tab
-tab_width = 2
 
 [*.{py}]
 max_line_length = 79
-insert_final_newline = true
+# insert_final_newline = true
 
 [*.{txt,vim}]
 max_line_length = 120

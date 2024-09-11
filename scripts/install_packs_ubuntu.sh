@@ -12,19 +12,30 @@ installPackagesWithApt() {
   # sudo add-apt-repository -y ppa:neovim-ppa/stable
   sudo apt update -y
 
-  sudo apt install -y build-essential curl file wget zsh git
+  sudo apt install -y build-essential procps curl file wget zsh git git-flow gh
   sudo apt install -y cmake autoconf xclip ack fzf bat fd-find ripgrep spell shellcheck net-tools openssh-server
   sudo apt install -y libtool libtool-bin libbz2-dev zlib1g-dev libgd-dev libreadline-dev libsqlite3-dev libssl-dev libffi-dev
   sudo apt install -y libpcre3 libpcre3-dev openssl libssl-dev libcanberra-gtk-module
-  sudo apt install -y tmux autojump prettyping jq
+  sudo apt install -y tmux prettyping jq
+
+  sudo apt install -y golang-go python3 python3-dev ruby ruby-html2haml ruby-dev default-jdk
+  curl https://pyenv.run | bash
+
+  # TODO: move to post_install and before install extra packages
+  export PYENV_ROOT="$HOME/.pyenv"
+  command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+  pyenv init -
+
+  # restart shell: for the PATH changes to take effect.
+  exec "$SHELL"
+  # pyenv latest -k 3 | xargs pyenv install
+  PYTHON_LATEST_VERSION=$(pyenv latest -k 3)
+  pyenv install $PYTHON_LATEST_VERSION
+  pyenv global $PYTHON_LATEST_VERSION
 
   # include rustc, cargo and rust-gdb
   curl https://sh.rustup.rs -sSf -y | sh -s -- -y
-
   . "${HOME}/.cargo/env"
-
-  sudo apt install -y golang-go python3 python3-dev python3-pip python3-venv ruby ruby-html2haml ruby-dev default-jdk
-  curl https://pyenv.run | bash
 
   # install nodejs LTS via nvm
   git clone https://github.com/nvm-sh/nvm.git "${HOME}/.nvm"
@@ -48,6 +59,10 @@ installPackagesWithApt() {
   # printf "On a desktop Linux environment such as X Windows, log out of your session completely and then log back in.\n"
   # printf "On Linux, you can also run the following command to activate the changes to groups:\n"
   # printf " # newgrp docker   \n"
+
+  # Vim Variant: vim-nox is designed for those who prefer to work in the terminal without the distraction of a graphical interface.
+  # The package also offers the power of scripting languages like Perl, Python, Ruby, and TCL.
+  sudo apt install vim-nox
 
   # sudo apt install -y vim neovim
   sudo apt install -y gettext

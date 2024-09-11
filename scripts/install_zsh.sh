@@ -22,7 +22,7 @@ checkZsh() {
 }
 
 installZshPlugins() {
-  # assuming zsh exists in /etc/shells, install ohmyzsh and powerline as well as custom plugins
+  # assuming zsh exists in /etc/shells, install ohmyzsh and custom plugins
   printf "install oh-my-zsh and other plugins for zsh ...\n"
 
   # install zsh plugins
@@ -75,13 +75,11 @@ configBashZsh() {
 installZshEnv() {
   checkZsh
   if [ "${HAS_ZSH}" = '' ]; then
-    # installPowerline
     configBashZsh
     printf "\nIt's better to have zsh installed. Ask your administrator for help and 'run install_zsh.sh' again ...\n"
     return 1
   else
     installZshPlugins
-    # installPowerline
     configBashZsh
 
     # if current shell is not zsh, promote to change it into zsh.

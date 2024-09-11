@@ -49,8 +49,8 @@ configGit() {
   git config --global color.diff.old "red bold"
   git config --global color.diff.new "green bold"
   git config --global color.diff.whitespace "red reverse"
-  git config --bool --global diff-so-fancy.stripLeadingSymbols false
-  git config --bool --global diff-so-fancy.useUnicodeRuler false
+  git config --global diff-so-fancy.stripLeadingSymbols false
+  git config --global diff-so-fancy.useUnicodeRuler false
 
   git config --global alias.st status
   git config --global alias.co checkout
@@ -68,7 +68,13 @@ configGit() {
   git config --global alias.supdate 'submodule update --remote --merge'
 
   git config --global init.defaultBranch main
+
   git config --global merge.conflictstyle diff3
+  git config --global merge.tool vimdiff
+  git config --global merge.conflictstyle diff3
+  git config --global mergetool.prompt false
+  git config --global mergetool.keepBackup false
+
   git config --global diff.tool vimdiff
   git config --global diff.submodule log
   git config --global difftool.prompt false

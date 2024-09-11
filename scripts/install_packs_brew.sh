@@ -9,73 +9,64 @@ installPackagesWithBrew() {
   printf "Updating brew and upgrade formulas ...\n"
   brew update && brew upgrade
 
-  # zsh should be installed as one of prerequisites
-  # brew install zsh zplug
   # 1. install all libs, packages and tools
   printf "\nStart installing libs, packages and tools ...\n"
-
-  # use system gcc (gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0), not Homebrew gcc (Homebrew GCC 5.5.0_7) 5.5.0
+  packages="cmake llvm openssl curl wget git git-flow gh universal-ctags"
+  brew install $packages
+  # use system gcc (gcc 9.3.0), not Homebrew gcc (Homebrew GCC 5.5.0_7) 5.5.0
   # however, YouCompleteMe need gcc@5
   # brew install gcc
 
-  brew install cmake
-  # Installing casks is supported only on macOS
-  # brew install --cask cmake
-  brew install --HEAD universal-ctags/universal-ctags/universal-ctags
+  # luarocks, A package manager for Lua modules.
+  packages="go perl node python3 pyenv lua luarocks"
+  brew install $packages
 
-  brew install go perl node python3 pyenv
-
-  # build CPython with shared library with --enable-framework required by YouCompleteMe ycmd server and other 3rd party tools, if use python in pyenv.
-  # env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.8.2
-  # pyenv global 3.8.2
-
-  # install into ${HOME}/.cargo, for linuxbrew doesn't support rust
-  curl https://sh.rustup.rs -sSf | sh -s -- -y -q --no-modify-path
+  # TODO: move to post_install and before install extra packages
+  export PYENV_ROOT="$HOME/.pyenv"
+  command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+  pyenv init -
+  # restart shell: for the PATH changes to take effect.
+  exec "$SHELL"
+  # pyenv latest -k 3 | xargs pyenv install
+  PYTHON_LATEST_VERSION=$(pyenv latest -k 3)
+  pyenv install $PYTHON_LATEST_VERSION
+  pyenv global $PYTHON_LATEST_VERSION
 
   if [ "${SYSOS}" = "Linux" ]; then
     # printf "Updating ripgrep 11.0.2 to 12.0.0 failed in homebrew Ubuntu due to asciidoc, install ripgrep later plz ...\n"
-    brew install bzip2 libffi libxml2 libxmlsec1 xclip
+    packages="bzip2 libffi libxml2 libxmlsec1 xclip"
+    brew install $packages
+    # install into ${HOME}/.cargo, for linuxbrew doesn't support rust
+    curl https://sh.rustup.rs -sSf | sh -s -- -y -q --no-modify-path
   elif [ "${SYSOS}" = "Darwin" ]; then
     # reattach-to-user-namespace support copy and pasty
-    brew install reattach-to-user-namespace
-    brew install gnupg gnu-sed
-    brew install iterm2
+    packages="rust reattach-to-user-namespace gnupg gnu-sed"
+    brew install $packages
   else
-    printf "reattach-to-user-namespace/xclip ...  not installed on %s ...\n" "${SYSOS}"
+    # printf "reattach-to-user-namespace/xclip ...  not installed on %s ...\n" "${SYSOS}"
   fi
 
-  brew install curl wget git tldr gd
-  brew install tmux tmuxinator
-
-  # install rust and cargo before ripgrep
-  brew install ripgrep bat fd z broot autojump
-  brew install ncdu prettyping htop graphviz lf
-
-  brew install fzf
+  packages="tmux tmuxinator ripgrep bat fd z broot prettyping diff-so-fancy htop tldr fzf"
+  brew install $packages
   # Install fzf, A command-line fuzzy finder.
   if [ "${SYSOS}" = "Darwin" ] || [ "${SYSOS}" = "Linux" ]; then
     "$(brew --prefix)/opt/fzf/install" --all
     printf "\n"
   fi
 
-  # install nginx, or install nginx manually from sourcecode, and fix --with-http_ssl_module bug referring to https://www.widlabs.com/article/mac-os-x-nginx-compile-symbol-not-found-for-architecture-x86_64
-  brew install luarocks nginx
-
-  # install vim with python3 support
+  # neovim-remote, the client of neovim
+  packages="nginx vim neovim neovim-remote"
+  # Install vim with python3 support, Pre-installed macOS system Vim does not support Python 3.
   # brew install vim --enable-pythoninterp=dynamic --enable-python3interp=dynamic
-  brew install vim neovim
 
   # install lunarvim
   curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh | bash /dev/stdin --install-dependencies
 
   # install platform-specific tools
   if [ "${SYSOS}" = "Darwin" ]; then
-    brew install --cask iterm2
-    brew install --cask google-chrome
-    brew install --cask visual-studio-code
+    packages="iterm2 google-chrome visual-studio-code
+    brew install --cask $packages
 
-    # install other useful tools
-    # brew cask install alfred
   elif [ "${SYSOS}" = "Linux" ]; then
     printf "Install vscode with sudo privilege in GUI mode, following the instruction: \n"
     printf "https://code.visualstudio.com/docs/setup/linux\n"

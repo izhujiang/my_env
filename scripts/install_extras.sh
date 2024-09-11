@@ -8,19 +8,7 @@ installPythonPackages() {
   printf "install 3d-party packages for python...... \n"
   printf "current pip3: %s\n" "$(which pip3)"
   pip3 install -U pip
-
-  pip3 install -U mock
-  # pip3 install -U flake8
-  pip3 install -U ruff
-  pip3 install -U codespell
-  pip3 install -U nose
-  pip3 install -U pynvim
-  pip3 install -U PyHamcrest
-  pip3 install -U imgcat
-  # pip3 install -U powerline-status
-  # pip3 install -U debugpy
-  # pip3 install -U black
-  # pip3 install -U vim-vint
+  pip3 install -U pep8 mock ruff pynvim imgcat
 }
 
 installRubyPackages() {
@@ -41,27 +29,16 @@ installNodejsPackages() {
   test -d "${HOME}/.local/lib" || mkdir "${HOME}/.local/lib"
 
   npm install -g npm
+  npm install -g neovim typescript serve eslint js-beautify \
+    mongo-hacker lighthouse tree-sitter-cli @microsoft/inshellisense \
+    commitizen conventional-changelog cz-conventional-changelog
 
-  npm install -g neovim
-  npm install -g diff-so-fancy
+  # @microsoft/inshellisense # IDE style command line auto complete by microsoft
 
   #  git commit message guidelines:
   # https://gist.github.com/abravalheri/34aeb7b18d61392251a2
   # https://github.com/commitizen/cz-cli
   # Generate changelogs and release notes. https://github.com/conventional-changelog/conventional-changelog
-  npm install -g commitizen conventional-changelog cz-conventional-changelog
-  npm install -g typescript
-  # npm install -g create-react-app
-  # npm install -g react-devtools
-  npm install -g serve
-  npm install -g eslint
-  # npm install -g prettier
-  npm install -g js-beautify
-  npm install -g mongo-hacker # MongoDB Shell Enhancements
-  npm install -g lighthouse   # The Node CLI provides the most flexibility in how Lighthouse runs can be configured and reported.
-
-  npm install -g tree-sitter-cli
-  npm install -g @microsoft/inshellisense # IDE style command line auto complete by microsoft
 }
 
 # installRustPackages() {
@@ -113,8 +90,8 @@ installVscodePlugins() {
   command -v code >/dev/null 2>&1 || return 1
 
   printf "install extension for code ...\n"
-  code --install-extension --force bmuskalla.vscode-tldr
-  code --install-extension --force vscodevim.vim
+  code --force --install-extension bmuskalla.vscode-tldr
+  code --force --install-extension vscodevim.vim
 
   SYSOS=$(uname -s)
   if [ "${SYSOS}" = "Darwin" ]; then

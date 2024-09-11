@@ -1,3 +1,7 @@
 # Many programs use the GNU Readline library for their command-line interface.
-# Readline supports (basic) Vim emulation
+# readline supports both vi and emacs editing modes,
+# so we can configure (via the .inputrc file) how readline interprets the keyboard inputs.
+# The main difference between the .inputrc file and these other configuration files
+# is that .inputrc modifies the behavior of the readline library.
 set editing-mode vi
+# set editing-mode emacs

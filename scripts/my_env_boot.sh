@@ -15,16 +15,15 @@ if [ "${SYSOS}" = "Darwin" ]; then
   if [ "${UNAME_MACHINE}" = "arm64" ]; then
     # On ARM macOS, this script installs to /opt/homebrew only
     HOMEBREW_PREFIX="/opt/homebrew"
-    HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
   else
     # On Intel macOS, this script installs to /usr/local only
     HOMEBREW_PREFIX="/usr/local"
-    HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   fi
 elif [ "${SYSOS}" = "Linux" ]; then
   HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
-  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 fi
+
+HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 
 # --------------------------------------------------------------------------
 # run as root or sudo user
@@ -54,8 +53,9 @@ SetupHomebrew() {
   fi
 
   #  install homebrew silently, bash works, not sh
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   export PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
+  ./install_brew.sh
   brew analytics off # disable Homebrew’s analytics
   brew tap homebrew/cask
   brew tap go-delve/delve
@@ -193,7 +193,6 @@ checkAndInstallEssentials() {
 # --------------------------------------------------------------------------
 installPackages() {
   if [ -d "${HOMEBREW_REPOSITORY}" ]; then
-    # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_packs.sh)"
     ./install_packs_brew.sh
   else
     # linuxbrew is not supported on arm platform.
@@ -205,21 +204,17 @@ installPackages() {
   fi
 
   printf "install extras packages ...\n"
-  # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_extras.sh)"
   ./install_extras.sh
 
   # 2. config git and init my_env repo
   printf "setup and config git ...\n"
-  # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_github.sh)"
   ./install_github.sh
 
   # additional config for setup my ide
   printf "setup tmux ...\n"
-  # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_tmux.sh)"
   ./install_tmux.sh
 
   printf "setup IDE ...\n"
-  # sh -c "$(curl -fsSL https://raw.githubusercontent.com/izhujiang/my_env/master/scripts/install_ide.sh)"
   ./install_ide.sh
 }
 
@@ -239,13 +234,7 @@ postInstall() {
     printf "# plz modify manually when necessary, for example: python is updated or HOMEBREW root is moved.\n"
     printf "# ===================================================================================\n"
 
-    # PY_PACKS_LOC=$(pip3 show powerline-status | grep Location);
-    # PY_PACKS_LOC=${PY_PACKS_LOC##*Location: };
-    # printf "export PY_PACKS_LOC=%s\n" "${PY_PACKS_LOC}";
-    # printf "export HOMEBREW_PREFIX=%s\n" "${HOMEBREW_PREFIX}";
-    #
     [ -d "${HOMEBREW_PREFIX}" ] && printf "export HOMEBREW_PREFIX=%s\n" "${HOMEBREW_PREFIX}"
-    [ -d "${HOMEBREW_REPOSITORY}" ] && printf "export HOMEBREW_REPOSITORY=%s\n" "${HOMEBREW_REPOSITORY}"
     [ -x "${HOMEBREW_PREFIX}/bin/brew" ] && "${HOMEBREW_PREFIX}"/bin/brew shellenv
   } >"${HOME}/.env"
 

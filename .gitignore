@@ -66,13 +66,15 @@ Temporary Items
 
 **/autoload
 **/plugged
+**/spell
+**/UltiSnips
 
 # Session
 Session.vim
 Sessionx.vim
 
 # Temporary
-.netrwhist
+**/.netrwhist
 # Auto-generated tag files
 tags
 # Persistent undo

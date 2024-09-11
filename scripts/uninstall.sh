@@ -2,17 +2,19 @@
 set -u
 
 printf "uninstall 3d-party packages for python...... \n"
-pip3 uninstall -y neovim
-pip3 uninstall -y jedi
-pip3 uninstall -y pep8
-# pip3 uninstall -y powerline-status
-pip3 uninstall -y PyHamcrest
+pip3 uninstall -y imgcat
+pip3 uninstall -y pynvim
+pip3 uninstall -y codespell
 pip3 uninstall -y nose
+pip3 uninstall -y ruff
 pip3 uninstall -y mock
-pip3 uninstall -y future
-pip3 uninstall -y flake8
-pip3 uninstall -y pipenv
+pip3 uninstall -y pep8
+pip3 uninstall -y jedi
+# pip3 uninstall -y powerline-status
+
+#
 # uninstall gem 3d party packages
+
 printf "uninstall 3d-party packages for ruby...... \n"
 # gem uninstall html2haml
 # gem uninstall sass
@@ -49,4 +51,4 @@ brew uninstall neovim vim nginx
 brew uninstall fzf
 brew uninstall reattach-to-user-namespace astyle readline xz pcre openssl gd
 brew uninstall pipenv python3 go ruby rust jq yarn npm node
-brew uninstall cmake wget git xclip zsh autojump tmux httpie
+brew uninstall cmake wget git xclip zsh tmux httpie
