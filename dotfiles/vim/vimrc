@@ -266,8 +266,8 @@ nnoremap [P :tabfirst<cr>
 " -- navigate and edit -----------------------------------
 " tag list
 " generate tags file (index of source code)
-command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git' | execute 'redraw!'
-
+command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git --fields=+l' | execute 'redraw!'
+" command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git' | execute 'redraw!'
 nnoremap ]t :tnext<cr>
 nnoremap [t :tprevious<cr>
 nnoremap ]T :tlast<cr>

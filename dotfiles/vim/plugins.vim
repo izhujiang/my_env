@@ -218,7 +218,7 @@ let g:fzf_vim.buffers_jump = 1
 let g:fzf_vim.grep_multi_line = 1
 
 let g:fzf_vim.commits_log_options = '--graph --color=always --format="%C(auto)%h%d %s %C(black)%C(bold)%cr"'
-let g:fzf_vim.tags_command = 'ctags -R --exclude=.git'
+let g:fzf_vim.tags_command = 'ctags -R --exclude=.git --fields=+l' 
 let g:fzf_vim.commands_expect = 'enter,ctrl-x'
 let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.6, 'relative': v:true } }
 
@@ -255,15 +255,17 @@ let fzf_cmd_mappings = {
       \ 'h': 'Helptags',
       \ 'j': 'Jumps',
       \ 'k': 'Maps',
-      \ 'l': 'Lines',
-      \ 'x': 'BLines',
+      \ 'w': 'Lines',
+      \ 'W': 'BLines',
       \ 'm': 'Marks',
       \ 'r': 'History',  
-      \ 'S': 'Snippets',
+      \ 'p': 'Snippets',
       \ 't': 'BTags',
       \ 'T': 'Tags',
       \ 'v': 'Windows',
       \ }
+" p -- snippet, piece
+" v -- window, ventana
 
 " :FZF_Files	              Files (runs $FZF_DEFAULT_COMMAND if defined)
 " :FZF_History	            Recent opened buffers
@@ -368,11 +370,6 @@ let g:ycm_goto_buffer_command = 'same-buffer'
 " When g:ycm_auto_trigger is 0, YCM sets the completefunc, so <C-x><C-u> manually trigger normal completion
 " let g:ycm_auto_trigger = 1
 
-" <C-n> issue has been solved: YouCompleteMe define inoremap accompanied with unique modifier
-" silent! exe 'inoremap <unique> <silent> ' . invoke_key . ' <C-R>=<SID>RequestSemanticCompletion()<CR>'
-" Trigger (default: <C-SPACE>) semantic completion anywhere. 
-let g:ycm_key_invoke_completion = '<C-n>'
-
 " semantic suggestion will override UltiSnips and identifier suggestion,
 let g:ycm_semantic_triggers = {
   \   'c' : ['->', '.'],
@@ -400,12 +397,10 @@ let g:ycm_semantic_triggers = {
   \   ]
   \ }
 
-" let g:ycm_min_num_of_chars_for_completion = 2
-" let g:ycm_min_num_identifier_candidate_chars = 0
-" let g:ycm_max_num_identifier_candidates = 10
-" let g:ycm_max_num_candidates = 50
-" let g:ycm_max_num_candidates_to_detail = 0
-" let g:ycm_disable_for_files_larger_than_kb = 1000
+" Trigger (default: <C-SPACE>) semantic completion anywhere. 
+let g:ycm_key_invoke_completion = '<C-n>'
+
+let g:ycm_disable_for_files_larger_than_kb = 8000
 
 let g:ycm_complete_in_comments = 1
 " let g:ycm_complete_in_strings = 1
@@ -554,7 +549,7 @@ let g:ycm_warning_symbol = '>>'
 let g:ycm_auto_hover='' 
 let g:ycm_show_detailed_diag_in_popup = 1
 
-let g:ycm_echo_current_diagnostic = 0
+let g:ycm_echo_current_diagnostic = 1
 let g:ycm_update_diagnostics_in_insert_mode = 0
 " let g:ycm_always_populate_location_list = 0
 " let g:ycm_open_loclist_on_ycm_diags = 1
@@ -567,60 +562,73 @@ let g:ycm_update_diagnostics_in_insert_mode = 0
 "        \ },
 "    \ }
 
+" let g:ycm_min_num_of_chars_for_completion = 2
+" let g:ycm_min_num_identifier_candidate_chars = 0
+" let g:ycm_max_num_identifier_candidates = 10
+" let g:ycm_max_num_candidates = 50
+" let g:ycm_max_num_candidates_to_detail = 0er>B :YcmForceCompileAndDiagnostics<CR>
+
 if !empty(globpath(&rtp, 'plugged/YouCompleteMe'))
+  " -- GoTo Commands (search and jumpto/GoTo{*})
+  
+  " switch between .c/cpp <--> .h  *.go <--> *_test.go
+  nnoremap  <M-f> :YcmCompleter GoToAlternateFile<CR>  
+  " The GoTo command tries to perform the 'most sensible' 
+  " look up the symbol under the cursor and jumps to its definition if possible, or its declaration
+  nnoremap go :YcmCompleter GoTo<CR>
+  nnoremap gd :YcmCompleter GoToDefinition<CR>
+  nnoremap <C-]> :YcmCompleter GoToDefinition<CR>
+  nnoremap gD :YcmCompleter GoToDeclaration<CR>
+  nnoremap grI :YcmCompleter GoToInclude<Space>
+  nnoremap grr :YcmCompleter GoToReferences<CR>
+  nnoremap gri :YcmCompleter GoToImplementation<CR>
+  nnoremap grs :YcmCompleter GoToSymbol<CR>
+  nnoremap grt :YcmCompleter GoToType<CR>
+  nnoremap gO :YcmCompleter GoToDocumentOutline<CR>
+
+  nnoremap grc :YcmCompleter GoToCallers<CR>
+  nnoremap grC :YcmCompleter GoToCallees<CR>
+
+  noremap gh <Nop>
+  nnoremap ght <Plug>(YCMTypeHierarchy)
+  nnoremap ghc <Plug>(YCMCallHierarchy)
+
+  nnoremap <leader>fs <Plug>(YCMFindSymbolInDocument)
+  nnoremap <leader>fS <Plug>(YCMFindSymbolInWorkspace)
+
   " -- Semantic Information Commands
+  "  :GetType
+  "  :GetParent
+  "  :GetDoc
+  
   " Overrid built-in K function, which run 'keywordprg' to lookup the keyword under the cursor.
   " Manually trigger or hide the popup for showing documentation (vs. g:ycm_auto_hover)
-  " The displayed documentation is selected heuristically in this order of preference: GetHover, GetDoc, and then GetType.
-
+  " The displayed documentation is selected heuristically in this order of preference: :GetHover, :GetDoc, and then :GetType.
   nnoremap <silent> K <plug>(YCMHover)
+  " It's selected heuristically in this order of preference:
+  "   - GetHover with markdown syntax
+  "   - GetDoc with no syntax
+  "   - GetType with the syntax of the current file.
   " BUG: NOT work when starting from off
   inoremap <silent> <C-s> <Plug>(YCMToggleSignatureHelp)
 
   " -- Diagnostic and Refactoring Commands
   " Show detailed diagnostics (:YcmShowDetailedDiagnostic command)
   let g:ycm_key_detailed_diagnostics = '<Leader>dd'
-  " nnoremap <F5> :YcmForceCompileAndDiagnostics<CR>
-  nnoremap  <leader>df :YcmCompleter FixIt<CR>
+  " let g:ycm_key_detailed_diagnostics = 'grd'
   nnoremap  gra :YcmCompleter FixIt<CR>
-  nnoremap  <leader>dn :YcmCompleter RefactorRename<Space>
   nnoremap  grn :YcmCompleter RefactorRename<Space>
-
-  " for switch between .c/cpp <--> .h  *.go <--> *_test.go
-  nnoremap  <M-f> :YcmCompleter GoToAlternateFile<CR>  
-
-  " -- Search and Jumpto/GoTo{*} Commands
-  " This command tries to perform the 'most sensible' GoTo operation it can (GoToInclude, GoToDeclaration, GoToDefinition).
-  " Currently, this means that it tries to look up the symbol under the cursor and jumps to its definition if possible;
-  " if the definition is not accessible from the current translation unit, jumps to the symbol's declaration.
-  nnoremap <leader>jj :YcmCompleter GoTo<CR>
-  nnoremap <leader>jd :YcmCompleter GoToDefinition<CR>
-  nnoremap gd :YcmCompleter GoToDefinition<CR>
-  nnoremap <C-]> :YcmCompleter GoToDefinition<CR>
-  nnoremap gD :YcmCompleter GoToDeclaration<CR>
-  nnoremap <leader>jD :YcmCompleter GoToDeclaration<CR>
-  nnoremap <leader>jr :YcmCompleter GoToReferences<CR>
-  nnoremap grr :YcmCompleter GoToReferences<CR>
-  nnoremap <leader>ji :YcmCompleter GoToImplementation<CR>
-  nnoremap gri :YcmCompleter GoToImplementation<CR>
-
-  nnoremap <leader>jt :YcmCompleter GoToType<CR>
-  nnoremap grt :YcmCompleter GoToType<CR>
-  nnoremap <leader>jO :YcmCompleter GoToDocumentOutline<CR>
-  nnoremap gO :YcmCompleter GoToDocumentOutline<CR>
-
-  nnoremap <leader>jc :YcmCompleter GoToCallers<CR>
-  nnoremap <leader>jC :YcmCompleter GoToCallees<CR>
-
-  nnoremap <leader>jH <Plug>(YCMTypeHierarchy)
-  nnoremap <leader>jh <Plug>(YCMCallHierarchy)
-
-  nnoremap <leader>js <Plug>(YCMFindSymbolInDocument)
-  nnoremap <leader>jS <Plug>(YCMFindSymbolInWorkspace)
+  nnoremap  gq :YcmCompleter Format<CR>
+  " :OrganizeImports
 
   " -- AutoCompletion
-  let g:ycm_key_list_select_completion = ['<TAB>', '<C-n>', '<Down>']
-  let g:ycm_key_list_previous_completion = ['<S-TAB>', '<C-p>', '<Up>']
+  " builtin keys
+  " let g:ycm_key_list_select_completion = ['<TAB>', '<Down>']
+  " let g:ycm_key_list_previous_completion = ['<S-TAB>', '<Up>']
+  
+  " DON'T include <C-n>, which overried g:ycm_key_invoke_completion 
+  " let g:ycm_key_list_select_completion = ['<TAB>', '<C-n>', '<Down>']
+  " let g:ycm_key_list_previous_completion = ['<S-TAB>', '<C-p>', '<Up>']
  
   " Import: Why YouCompleteMe does't accept the completion via <cr>.
   " Ref: https://github.com/ycm-core/YouCompleteMe/issues/232#issuecomment-15934327
@@ -828,7 +836,7 @@ autocmd BufReadPost fugitive://* set bufhidden=delete
 
 " -----------------------------------------------------------------------------
 " vim-gitgutter
-let g:gitgutter_max_signs = 1000
+let g:gitgutter_max_signs = 2048
 " let g:gitgutter_preview_win_floating = 1
 
 " builtin mapping keys
