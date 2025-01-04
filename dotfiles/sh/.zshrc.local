@@ -1,19 +1,14 @@
-# useful functions for being called by shell and vim/nvim filter
-sample (){
+# enable fzf keybindings and fuzzy auto-completion for zsh
+# source "/usr/share/doc/fzf/examples/key-bindings.zsh"
+# source "/usr/share/doc/fzf/examples/completion.zsh"
+
+sample() {
   echo "define useful toolkits(functions) defined with shell script."
   echo "call function in bash/zsh"
   echo "use filter command [!!][!}|!G|...] to call the functions in vim/nvim"
 }
 
-hello (){
+hello() {
   printf "hello shell-toolkit\n"
   printf "plz define some useful functions for being called by shell and vim/nvim filter\n"
-}
-
-now() {
-  echo $1 $(date "+%A, %B %e, %Y - %l:%M:%s%p")
-}
-
-hnow() {
-        echo $(printf '#%.0s' {1..2}) $(now)
 }

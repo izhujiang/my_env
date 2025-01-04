@@ -9,7 +9,7 @@
 #   -- If Bash doesn’t find .bash_profile, then it looks for .bash_login and .profile,
 #      in that order, and executes the first readable file only.
 #
-test -e "${HOME}/.env" && . "${HOME}/.env"
+# test -e "${HOME}/.env" && . "${HOME}/.env"
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -19,13 +19,45 @@ export SSH_KEY_PATH=${HOME}/.ssh/rsa_id
 # silence warning, If invoke the bash shell while macOS Catalina is configured to use a different shell.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-export HOMEBREW_NO_ANALYTICS=1
-export HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
-export HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
-export XML_CATALOG_FILES="${HOMEBREW_PREFIX}/etc/xml/catalog"
-export MANPATH="${HOMEBREW_PREFIX}/share/man:${MANPATH}"
-export INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH}"
-export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:${PATH}"
+SYSOS=$(uname -s)
+UNAME_MACHINE="$(uname -m)"
+if [ "${SYSOS}" = "Darwin" ]; then
+  if [ "${UNAME_MACHINE}" = "arm64" ]; then
+    # On ARM macOS, this script installs to /opt/homebrew only
+    HOMEBREW_PREFIX="/opt/homebrew"
+  else
+    # On Intel macOS, this script installs to /usr/local only
+    HOMEBREW_PREFIX="/usr/local"
+  fi
+elif [ "${SYSOS}" = "Linux" ]; then
+  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+fi
+
+if [ -n "${HOMEBREW_PREFIX}" ] && [ -d "$HOMEBREW_PREFIX" ]; then
+  export HOMEBREW_NO_ANALYTICS=1
+  export HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
+  export HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+  export INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}"
+
+  # # ruby
+  export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
+
+  # # llvm
+  export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+  # # setting explicitly the environment variables for CC and CXX to confirm the correct compiler
+  export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
+  export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
+
+  # export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib"
+  # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/llvm/include"
+
+  # # java
+  export PATH="${HOMEBREW_PREFIX}/opt/openjdk/bin:$PATH"
+  # For compilers to find openjdk
+  # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/openjdk/include"
+
+  export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:$PATH"
+fi
 
 # for linux, to ensure the TERM variable is only set outside of tmux, since tmux sets its own terminal.
 [ -z "$TMUX" ] && export TERM=xterm-256color
@@ -86,18 +118,64 @@ export GOPATH=${HOME}/workspace/go
 export GO111MODULE=on
 export PATH=${GOPATH}/bin:${PATH}
 # rust
-export PATH="${HOME}/.cargo/bin:${PATH}"
-# ruby
-export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
-# llvm
-export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+[ -d "${HOME}/.cargo/bin" ] && export PATH="${HOME}/.cargo/bin:${PATH}"
+
+SYSOS=$(uname -s)
+UNAME_MACHINE="$(uname -m)"
+if [ "${SYSOS}" = "Darwin" ]; then
+  if [ "${UNAME_MACHINE}" = "arm64" ]; then
+    # On ARM macOS, this script installs to /opt/homebrew only
+    HOMEBREW_PREFIX="/opt/homebrew"
+  else
+    # On Intel macOS, this script installs to /usr/local only
+    HOMEBREW_PREFIX="/usr/local"
+  fi
+elif [ "${SYSOS}" = "Linux" ]; then
+  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+fi
+
+if [ -d "$HOMEBREW_PREFIX" ]; then
+  export HOMEBREW_NO_ANALYTICS=1
+
+  # # ruby
+  export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
+
+  # # llvm
+  export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+  # # setting explicitly the environment variables for CC and CXX to confirm the correct compiler
+  export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
+  export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
+
+  # export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib"
+  # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/llvm/include"
+
+  # # java
+  export PATH="${HOMEBREW_PREFIX}/opt/openjdk/bin:$PATH"
+  # For compilers to find openjdk
+  # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/openjdk/include"
+
+  export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:$PATH"
+
+  # ruby
+  export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
+  # llvm
+  export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
 
 # export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib"
 # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/llvm/include"
+fi
 
 # python
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+if [ -d "${HOME}/.pyenv/bin" ]; then
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init -)"
+# Load pyenv-virtualenv automatically
+# eval "$(pyenv virtualenv-init -)"
+fi
+
+# Load pyenv-virtualenv automatically
+# eval "$(pyenv virtualenv-init -)"
 
 # found static Python library (/Users/hurricane/.pyenv/versions/3.9.2/lib/python3.9/config-3.9-darwin/libpython3.9.a)
 # but a dynamic one is required. You must use a Python compiled with the --enable-framework flag. If using pyenv, you need to run the command:

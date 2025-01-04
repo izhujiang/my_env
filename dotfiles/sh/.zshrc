@@ -21,12 +21,12 @@
 # start=$cur_timestamp
 # echo 1 $cur_timestamp
 
-
-ZSH_DISABLE_COMPFIX=true
+ZSH_DISABLE_COMPFIX="true"
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="kolo"  # simple style
+# ZSH_THEME="kolo"
+ZSH_THEME="mortalscumbag"
 
 # Uncomment the following line to use case-eensitive completion.
 # CASE_SENSITIVE="true"
@@ -72,7 +72,7 @@ plugins=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions vi-mode z)
 # set z command alias to zz, avoid the conflix between oh_my_zsh's z plugin and zfz's integration(below).
 export _Z_CMD=zz
 # oh-my-zsh takes 131ms, and 235ms with plugins
-test -e ${ZSH}/oh-my-zsh.sh && . ${ZSH}/oh-my-zsh.sh
+test -e "${ZSH}/oh-my-zsh.sh" && . "${ZSH}/oh-my-zsh.sh"
 
 # tmp=$cur_timestamp
 # cur_sec_and_ns=`gdate '+%s-%N'`
@@ -135,20 +135,29 @@ alias python="python3"
 alias v=nvim
 alias vi=nvim
 alias lv=lvim
+
 # 4 don't run nvim inside nvim
 if [ -n "$NVIM_LISTEN_ADDRESS" ]; then
   if [ -x "$(command -v nvr)" ]; then
     # echo "using nvr instead nvim"
-    alias nvim=nvr
+    alias nvim=nvr -cc split --remote-wait +'set bufhidden=wipe'
   else
     alias nvim='echo "No nesting nvim!\nUsing:\nnvr [-loOp] <file> [<file>...]"'
   fi
 fi
 
+if [ -n "$NVIM_LISTEN_ADDRESS" ]; then
+  export VISUAL="nvr -cc split --remote-wait +'set bufhidden=wipe'"
+  export EDITOR="nvr -cc split --remote-wait +'set bufhidden=wipe'"
+else
+  export VISUAL="vi"
+  export EDITOR="vi"
+fi
+
 alias rm="rm -i"
 
 alias f="fzf --preview 'bat --color always {}'"
-alias fv="fzf -m --preview 'bat --color always {}' --print0 | xargs -0 -o ${EDITOR}"
+alias fv='fzf -m --preview bat --color always {} --print0 | xargs -0 -o ${EDITOR}'
 
 # tmux session management
 alias t="tmux"
@@ -156,31 +165,32 @@ alias tn="tmux new -s"
 alias ta="tmux attach -t"
 alias tl="tmux ls"
 alias tx="tmux kill-session -t"
-# enable a 256-color Terminal in Linux. For mac, set iTerm2's Profile -> Terminal Emulation -> Report Terminal Type into xterm-256color.
+
+# enable a 256-color Terminal in Linux. For mac, set iTerm2 Profile -> Terminal Emulation -> Report Terminal Type into xterm-256color.
 # [ -z "$TMUX" ] && export TERM=xterm-256color
 alias tt="tmuxinator"
 alias mux="tmuxinator"
 
-alias idea="${HOME}/idea"
+alias idea='${HOME}/idea'
 z() {
   local dir=$(
     _z 2>&1 |
-    fzf --height 40% --layout reverse --info inline \
+      fzf --height 40% --layout reverse --info inline \
         --nth 2.. --tac --no-sort --query "$*" \
         --bind 'enter:become:echo {2..}'
   ) && cd "$dir"
 }
 
-eval "$(pyenv init -)"
+# fzf version >= 0.48.0
+eval "$(fzf --zsh)"
 
-source <(fzf --zsh)
 # fzf-git.sh project provides a bunch of key bindings for completing Git objects. You should definitely check it out.
 
-[ -e ${HOME}/.local/scripts/.zshrc.local ] && . ${HOME}/.local/scripts/.zshrc.local
+[ -e "${HOME}/.zshrc.local" ] && . "${HOME}/.zshrc.local"
 # unsetopt xtrace
 # exec 2>&3 3>&-
 
 # zprof
-[ -f ~/.inshellisense/key-bindings.zsh ] && source ~/.inshellisense/key-bindings.zsh
+[ -f "${HOME}/.inshellisense/key-bindings.zsh" ] && source "${HOME}/.inshellisense/key-bindings.zsh"
 
-source ${HOME}/.config/broot/launcher/bash/br
+[ -f "${HOME}/.config/broot/launcher/bash/br" ] && source "${HOME}/.config/broot/launcher/bash/br"

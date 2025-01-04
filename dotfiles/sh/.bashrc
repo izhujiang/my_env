@@ -19,12 +19,10 @@ shopt -s globstar # Bash version >= 4.0
 shopt -s extglob
 shopt -s failglob
 
-eval "$(pyenv init -)"
 eval "$(fzf --bash)"
 
-test -e "${HOME}/.iterm2_shell_integration.bash" && . "${HOME}/.iterm2_shell_integration.bash"
-source "${HOME}/.config/broot/launcher/bash/br"
-source "${HOME}/.cargo/env"
+[ -e "${HOME}/.iterm2_shell_integration.bash" ] && . "${HOME}/.iterm2_shell_integration.bash"
+# source "${HOME}/.cargo/env"
 
 # useful shell tools
 alias q="exit"
@@ -59,10 +57,18 @@ alias lv=lvim
 if [ -n "$NVIM_LISTEN_ADDRESS" ]; then
   if [ -x "$(command -v nvr)" ]; then
     # echo "using nvr instead nvim"
-    alias nvim=nvr
+    alias nvim=nvr -cc split --remote-wait +'set bufhidden=wipe'
   else
     alias nvim='echo "No nesting nvim!\nUsing:\nnvr [-loOp] <file> [<file>...]"'
   fi
+fi
+
+if [ -n "$NVIM_LISTEN_ADDRESS" ]; then
+  export VISUAL="nvr -cc split --remote-wait +'set bufhidden=wipe'"
+  export EDITOR="nvr -cc split --remote-wait +'set bufhidden=wipe'"
+else
+  export VISUAL="nvim"
+  export EDITOR="nvim"
 fi
 
 alias rm="rm -i"

@@ -14,6 +14,7 @@ filetype plugin indent on       " enable file type detection,
 syntax on                       " syntax highlighting
 
 let g:vim_home = expand('$HOME/.vim')
+let g:vim_data = expand('$HOME/.local/share/vim')
 let g:netrw_liststyle = 3
 let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
 
