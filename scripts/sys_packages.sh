@@ -146,15 +146,19 @@ installPackagesWithBrew() {
 
   # development tools
   brew install go node
+  # TODO: install node, rust
+  # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
   # llvm depends on python3, lld depends on llvm
   brew install python3 python-setuptools
   brew install llvm lld
-  brew luarocks composer
+  brew install luarocks composer
   brew install protobuf
   brew install universal-ctags git-flow gh
   brew install shellcheck
   brew install tmux tmuxinator
 
+  # TODO: move vim, nvim and others to user_packages
   brew install vim
   brew install neovim neovim-remote
 

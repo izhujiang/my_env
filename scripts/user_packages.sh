@@ -258,9 +258,9 @@ installNodejsPackages() {
   # install node.js 3d party packages
   printf "Install nodejs 3d-party packages ...\n"
 
-  printf "change npm global repository where node_modules stored ...\n"
-  npm config set prefix "${HOME}/.local"
-  [ -d "${HOME}/.local/lib" ] || mkdir -p "${HOME}/.local/lib"
+  # printf "change npm global repository where node_modules stored ...\n"
+  # npm config set prefix "${HOME}/.local"
+  # [ -d "${HOME}/.local/lib" ] || mkdir -p "${HOME}/.local/lib"
 
   # npm install -g npm
 
@@ -317,9 +317,18 @@ installRustPackages() {
 
   # uv is available via Cargo, but must be built from Git rather than crates.io due to its dependency on unpublished crates.
   cargo install --git https://github.com/astral-sh/uv uv
+
+  # cargo install mocword
+  # printf("please download mocword-data manually from https://github.com/high-moctane/mocword-data/releases/tag/eng20200217")
+  # mkdir -p ~/.local/share/mocword/
+  # printf("and setup: export MOCWORD_DATA=/path/to/mocword.sqlite")
+  # curl --verbose --output-dir ~/.local/share/mocword/ --remote-name https://github.com/high-moctane/mocword-data/releases/download/eng20200217/mocword.sqlite.gz
 }
 uninstallRustPackages() {
   printf "Uninstall 3d-party packages for rust ...\n"
+
+  # cargo uninstall mocword
+
   # Mason don't support selene on alpine
   cargo uninstall uv
   cargo uninstall deno
@@ -518,15 +527,17 @@ uninstallNeovimPlugins() {
   # [ -d "${HOME}/repo/LeoVim" ] && rm -rf "${HOME}/repo/LeoVim"
 }
 
+# install nodejs LTS via nvm
 installCustomNodejs() {
   printf "install nodejs LTS via nvm \n"
-  # # install nodejs LTS via nvm
-  export NVM_DIR="${HOME}/.nvm"
-  [ -d "$NVM_DIR" ] && (
-    git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
-    cd "$NVM_DIR"
-    # git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
-  ) && . "$NVM_DIR/nvm.sh" && cd - || return
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+  # export NVM_DIR="${HOME}/.nvm"
+  # [ -d "$NVM_DIR" ] && (
+  #   git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+  #   cd "$NVM_DIR"
+  #   # git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
+  # ) && . "$NVM_DIR/nvm.sh" && cd - || return
 
   # require make, g++, python,
   nvm install --lts

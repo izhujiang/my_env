@@ -112,6 +112,8 @@ rfv() (
     --query "$*"
 )
 
+export PATH="${HOME}/.local/bin:${PATH}"
+
 # 3. ide-level env and tools
 # golang
 export GOPATH=${HOME}/workspace/go
@@ -160,9 +162,6 @@ if [ -d "$HOMEBREW_PREFIX" ]; then
   export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
   # llvm
   export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
-
-# export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib"
-# export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/llvm/include"
 fi
 
 # python
@@ -170,20 +169,17 @@ if [ -d "${HOME}/.pyenv/bin" ]; then
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
   eval "$(pyenv init -)"
-# Load pyenv-virtualenv automatically
-# eval "$(pyenv virtualenv-init -)"
 fi
-
-# Load pyenv-virtualenv automatically
-# eval "$(pyenv virtualenv-init -)"
 
 # found static Python library (/Users/hurricane/.pyenv/versions/3.9.2/lib/python3.9/config-3.9-darwin/libpython3.9.a)
 # but a dynamic one is required. You must use a Python compiled with the --enable-framework flag. If using pyenv, you need to run the command:
 # export PYTHON_CONFIGURE_OPTS="--enable-framework"
 
 # global npm package
-export PATH="${HOME}/.local/bin:${PATH}"
-export PATH="${HOME}/.deno/bin:${PATH}"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+
 export PATH="${HOME}/.docker/bin:${PATH}"
 
 test -e "${HOME}/.bashrc" && . "${HOME}/.bashrc"

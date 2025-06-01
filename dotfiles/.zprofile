@@ -88,8 +88,8 @@ fi
 
 if [ -d "$HOMEBREW_PREFIX" ]; then
   export HOMEBREW_NO_ANALYTICS=1
-  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
-  export INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}";
+  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
+  export INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}"
 
   # ruby
   export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
@@ -113,21 +113,17 @@ if [ -d "$HOMEBREW_PREFIX" ]; then
   export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:$PATH"
 fi
 
+[ -d "${HOME}/.local/bin" ] && export PATH="${HOME}/.local/bin:${PATH}"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
+
 # python
 if [ -d "${HOME}/.pyenv/bin" ]; then
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
-fi
-
-if [ -n "$(command -v pyenv)" ]; then
   eval "$(pyenv init -)"
-  # Load pyenv-virtualenv automatically
-  # eval "$(pyenv virtualenv-init -)"
 fi
-
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 
 # golang
 export GOPATH=${HOME}/workspace/go
@@ -140,7 +136,7 @@ export PATH=${GOPATH}/bin:${PATH}
 # export PATH="${HOME}/.deno/bin:${PATH}"
 # export PATH="${HOME}/.docker/bin:${PATH}"
 
-[ -d "${HOME}/.local/bin" ] && export PATH="${HOME}/.local/bin:${PATH}"
-
 [ -e "${HOME}/.iterm2_shell_integration.zsh" ] && source "${HOME}/.iterm2_shell_integration.zsh"
 [ -e "${HOME}/.zprofile.local" ] && . "${HOME}/.zprofile.local"
+
+export MOCWORD_DATA=${HOME}/.local/share/mocword/mocword.sqlite

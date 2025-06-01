@@ -43,10 +43,10 @@ if v:version >= 900
   let	g:mapleader = ','
 else
   let mapleader = ','
+  let maplocalleader = '-'
 endif
 " mapping the reverse character search command to another key.
 noremap <Bslash> ,
-let maplocalleader = '<Space>'
 
 " set autochdir                   " change working directories on selecting new files
 set autoread                      " reload file when modified outside of vim
@@ -54,6 +54,7 @@ set autowrite                     " Write the contents of the file, if it has be
 set nobackup
 set noswapfile
 
+" set background=dark
 set backspace=eol,start,indent
 set clipboard^=unnamed            " enable system commands(⌘-c/x/v) dealing with 'unnamed' register
 if has('unnamedplus')
@@ -106,6 +107,8 @@ set autoindent
 set smartindent
 
 set laststatus=2
+set noshowmode                " 'mode' in laststatus is unnecessary anymore since statusline plug provides 'mode'
+
 " set lazyredraw              "only be set temporarily when performing an operation where redrawing may cause flickering or cause a slowdown.
 
 " set list                          " show tab and space with different chars. toggle it using :set invlist
@@ -114,7 +117,7 @@ set mouse=""
 set nrformats=octal,hex,alpha,bin   " enable Ctrl-A/Ctrl-X to work on octal and hex numbers, as well as characters
 set number
 set relativenumber
-" set numberwidth=4
+set numberwidth=4
 set path+=**                        " set sub-directories will search for gf, :find command
 set ruler
 set scrolloff=8
@@ -124,13 +127,13 @@ set shiftround
 " set showmode
 set shortmess=aT
 set showmatch
-set showtabline=0
+set showtabline=0             " Never show tabpages, use tmux instead tabpages
 if !exists('$SHELL')
     set shell=/bin/sh
 endif
 
 set sidescrolloff=8
-set signcolumn=yes
+" set signcolumn=yes
 set smarttab
 " set spell
 " set spelllang=fr    "default en
@@ -139,7 +142,7 @@ set smarttab
 "
 " set statusline=%F%m%r%h%w%=(%{&ff}/%Y)\ (line\ %l\/%L,\ col\ %c)\
 set switchbuf=uselast,useopen      " DON'T use newtab: fugitive.vim's :Gclog and Ggrep will open new buffers in the new tabs when switchbuf include newtab.
-set termguicolors
+" set termguicolors
 set tildeop                        " tilde command '~' behaves like an operator.
 set timeoutlen=700
 set ttimeoutlen=100       " timeoutlen or ttimeoutlen contributes to a delay after pressing <Esc>.
@@ -180,133 +183,124 @@ noremap <Down> <Nop>
 noremap <Left> <Nop>
 noremap <Right> <Nop>
 
-" -- buffers and augument list -----------------------------------
-nnoremap <leader>. :lcd %:p:h<CR>
-nnoremap <leader>e :e <C-R>=expand("%:p:h") . "/" <cr>
-" type %% on the command-line prompt, expands to the directory of the active buffer, like :e %%, :r %%, :we %%.
-cnoremap <expr> %% getcmdtype() == ':' ? expand('%:p:h').'/' : '%%'
-nnoremap <silent> <leader>w :w<cr>
-nnoremap <silent> <leader>W :noautocmd w<cr>
-nnoremap <silent> <Leader>x :bdelete<CR>
-nnoremap <silent> <Leader>X :bwipeout<CR>
-
+" -- Navigation -----------------------------------
 " buffer list
-nnoremap ]b :bnext<cr>
-nnoremap [b :bprevious<cr>
-nnoremap ]B :blast<cr>
-nnoremap [B :bfirst<cr>
-" Switch and  edit the alternate file (builtin command).
-" <C-^>/<C-6>, or :buf #<cr>
-nnoremap <M-b> :buf #<cr>
-
-" augument list
 nnoremap ]a :next<cr>
 nnoremap [a :previous<cr>
 nnoremap ]A :last<cr>
 nnoremap [A :first<cr>
-
-" -- windows(ventana) and tab pages -----------------------------------
-" window commands prefixing with CTRL-W is quite good.
-nmap <silent> <leader>v <C-w>
-
-nnoremap <silent> <leader>q :quit<cr>
-tnoremap <silent> <leader>q <C-\><C-n>:quit<cr>
-tnoremap <silent> <C-d> <C-\><C-n>:bdelete!<cr>
-nnoremap <silent> <leader>Q :only<cr>
-
-noremap <leader><Bar> :vsplit<cr>
-noremap <leader>- :split<cr>
-
-"navigate  windows
-nnoremap <silent> <M-h> :wincmd h<CR>
-nnoremap <silent> <M-j> :wincmd j<CR>
-nnoremap <silent> <M-k> :wincmd k<CR>
-nnoremap <silent> <M-l> :wincmd l<CR>
-nnoremap <silent> <M-w> :wincmd p<CR>
-
-inoremap <silent> <M-h> <C-\><C-N><C-w>h
-inoremap <silent> <M-j> <C-\><C-N><C-w>j
-inoremap <silent> <M-k> <C-\><C-N><C-w>k
-inoremap <silent> <M-l> <C-\><C-N><C-w>l
-inoremap <silent> <M-w> <C-\><C-N><C-w>p
-
-tnoremap <silent> <M-h> <C-\><C-N><C-w>h
-tnoremap <silent> <M-j> <C-\><C-N><C-w>j
-tnoremap <silent> <M-k> <C-\><C-N><C-w>k
-tnoremap <silent> <M-l> <C-\><C-N><C-w>l
-tnoremap <silent> <M-w> <C-\><C-N><C-w>p
-
-" Should disable ^<-, ^->, ^↑, ^↓ in MissionControl shortcuts (macos)
-nnoremap <silent> <M-Up> :resize +2<CR>
-nnoremap <silent> <M-Down> :resize -2<CR>
-nnoremap <silent> <M-Left> :vertical resize -5<CR>
-nnoremap <silent> <M-Right> :vertical resize +5<CR>
-
-inoremap <silent> <M-Up> <Esc>:resize +2<CR>gi
-inoremap <silent> <M-Down> <Esc>:resize -2<CR>gi
-inoremap <silent> <M-Left> <Esc>:vertical resize -5<CR>gi
-inoremap <silent> <M-Right> <Esc>:vertical resize +5<CR>gi
-
-tnoremap <silent> <M-Up> <C-\><C-n>:resize +2<CR>a
-tnoremap <silent> <M-Down> <C-\><C-n>:resize -2<CR>a
-tnoremap <silent> <M-Left> <C-\><C-n>:vertical resize -5<CR>a
-tnoremap <silent> <M-Right> <C-\><C-n>:vertical resize +5<CR>a
-
-" Tabpage
-nnoremap ]p :tabnext<cr>
-nnoremap [p :tabprev<cr>
-nnoremap ]P :tablast<cr>
-nnoremap [P :tabfirst<cr>
-
-" use built-in gt/gT for :tabnext/tabprev or Ex-commands directly
-" OR use tmux to arrange workspaces, which is much better.
-" DON'T override gt/gT for tabpage
-" noremap gt :tabnext<cr>
-" noremap gT :tabprev<cr>
-
-" -- navigate and edit -----------------------------------
-" tag list
-" generate tags file (index of source code)
-command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git --fields=+l' | execute 'redraw!'
-" command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git' | execute 'redraw!'
+" argument list
+nnoremap ]b :bnext<cr>
+nnoremap [b :bprevious<cr>
+nnoremap ]B :blast<cr>
+nnoremap [B :bfirst<cr>
+" quickfix list
+nnoremap ]q :cnext<cr>
+nnoremap [q :cprevious<cr>
+nnoremap ]Q :clast<cr>
+nnoremap [Q :cfirst<cr>
+" location list
+nnoremap ]l :lnext<cr>
+nnoremap [l :lprevious<cr>
+nnoremap ]L :llast<cr>
+nnoremap [L :lfirst<cr>
+" tag matchlist
 nnoremap ]t :tnext<cr>
 nnoremap [t :tprevious<cr>
 nnoremap ]T :tlast<cr>
 nnoremap [T :tfirst<cr>
 
-" traversal through change list
+
+" diff/change
+" ]c
+" [c
+"
+" change list
 " g;  -- Go to [count] older position in change list.
 " g,  -- Go to [count] newer position in change list.
+"
+" spell
+" ]s [s ]S [S
 
+" use built-in gt/gT for :tabnext/tabprev or Ex-commands directly
+" OR use (better) tmux to arrange workspaces.
+" nnoremap gt :tabnext<cr>
+" nnoremap gT :tabprev<cr>
+"
+" -- buffers and augument list -----------------------------------
+cnoremap <leader>% :lcd %:p:h<CR>
+nnoremap <leader>e :e <C-R>=expand("%:p:h") . "/" <cr>
+nnoremap <leader>n :enew \| startinsert <cr>
+nnoremap <silent> <leader>w :w<cr>
+nnoremap <silent> <leader>W :noautocmd w<cr>
+nnoremap <silent> <Leader>c :bdelete<CR>
+nnoremap <silent> <Leader>C :bwipeout<CR>
+" Alternate file
+" <C-^>/<C-6>, or :buf #<cr>
+
+" -- windows(ventana) and tab pages -----------------------------------
+" window commands prefixing with CTRL-W is quite good.
+" nmap <silent> <leader>v <C-w>
+
+noremap <leader><Bar> :vsplit<cr>
+noremap <leader>- :split<cr>
+
+"navigate  windows
+" Use builtin <C-w>hjkl keybinds to jump between windows
+nnoremap <silent> <A-h> :wincmd h<CR>
+nnoremap <silent> <A-j> :wincmd j<CR>
+nnoremap <silent> <A-k> :wincmd k<CR>
+nnoremap <silent> <A-l> :wincmd l<CR>
+nnoremap <silent> <A-w> :wincmd p<CR>
+
+inoremap <silent> <A-h> <C-\><C-N><C-w>h
+inoremap <silent> <A-j> <C-\><C-N><C-w>j
+inoremap <silent> <A-k> <C-\><C-N><C-w>k
+inoremap <silent> <A-l> <C-\><C-N><C-w>l
+inoremap <silent> <A-w> <C-\><C-N><C-w>p
+
+tnoremap <silent> <A-h> <C-\><C-N><C-w>h
+tnoremap <silent> <A-j> <C-\><C-N><C-w>j
+tnoremap <silent> <A-k> <C-\><C-N><C-w>k
+tnoremap <silent> <A-l> <C-\><C-N><C-w>l
+tnoremap <silent> <A-w> <C-\><C-N><C-w>p
+
+" Should disable ^<-, ^->, ^↑, ^↓ in MissionControl shortcuts (macos)
+nnoremap <silent> <A-Up> :resize +2<CR>
+nnoremap <silent> <A-Down> :resize -2<CR>
+nnoremap <silent> <A-Left> :vertical resize -5<CR>
+nnoremap <silent> <A-Right> :vertical resize +5<CR>
+
+inoremap <silent> <A-Up> <Esc>:resize +2<CR>gi
+inoremap <silent> <A-Down> <Esc>:resize -2<CR>gi
+inoremap <silent> <A-Left> <Esc>:vertical resize -5<CR>gi
+inoremap <silent> <A-Right> <Esc>:vertical resize +5<CR>gi
+
+tnoremap <silent> <A-Up> <C-\><C-n>:resize +2<CR>a
+tnoremap <silent> <A-Down> <C-\><C-n>:resize -2<CR>a
+tnoremap <silent> <A-Left> <C-\><C-n>:vertical resize -5<CR>a
+tnoremap <silent> <A-Right> <C-\><C-n>:vertical resize +5<CR>a
+
+
+" tag list
+" generate tags file (index of source code)
+command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git --fields=+l' | execute 'redraw!'
 
 " diff
-" ]c   -- Jump forwards to the next start of a change.
-" [c   -- Jump backwards to the previous start of a change.
 " do (diff obtain) for :diffget (modify the current buffer to undo difference with another buffer)
 " dp (diff put) for :diffput (modify another buffer to undo difference with the current buffer)
-
-" spell
-" ]s [s ]S [S   -- spell jumps
 
 " clean highlight, <C-l>, On macOS, used as default shortcut for sending a newline in many applications.
 nnoremap <silent> <C-l> :nohlsearch<cr>
 nnoremap <silent> <leader>gu :nohlsearch<CR>:diffupdate<CR>
 
 "better move lines up/down
-nnoremap <C-j> :m .+1<cr>
-nnoremap <C-k> :m .-2<cr>
-vnoremap <C-j> :m '>+1<cr>gv
-vnoremap <C-k> :m '<-2<cr>gv
-inoremap <C-j> <Esc>:m .+1<cr>gi
-inoremap <C-k> <Esc>:m .-2<cr>gi
-
-" better autoCompletion
-" DON'T remap <Tab>, just keeping typing, map only when 'noinsert', or 'longest' in 'completeopt'
-" inoremap <expr> <Tab> pumvisible() ? "\<C-y>" : "\<Tab>"
-" DON'T overirde builtin <Esc> which switch back to Normal mode, use <c-e> directly.
-" inoremap <expr> <Esc> pumvisible() ? "\<C-e>" : "\<Esc>"
-" inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-j>"
-" inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : "\<C-k>"
+nnoremap <A-m> :m .+1<cr>
+nnoremap <A-S-m> :m .-2<cr>
+inoremap <A-S-m> <Esc>:m .-2<cr>gi
+inoremap <A-m> <Esc>:m .+1<cr>gi
+vnoremap <A-m> :m '>+1<cr>gv=gv
+vnoremap <A-S-m> :m '<-2<cr>gv=gv
 
 " CAUTION
 "	Single quotes (') are for literal strings (no special key interpretation).
@@ -316,19 +310,11 @@ inoremap <C-k> <Esc>:m .-2<cr>gi
 " vnoremap < <gv
 " vnoremap > >gv
 
-" add comment below and above
-nnoremap gco o<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>
-nnoremap gcO O<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>
-
 " better paste
 " paste over visual selection
 vnoremap <silent> p P
-" Better paste. With P, the unnamed register not changed, v_P is repeatable.(ref :h v_p and v_P)
-nnoremap <leader>p "+gP
-
-" nnoremap find and center next
-" noremap <Leader>n nzz
-" noremap <Leader>N Nzz
+" With P, the unnamed register not changed, v_P is repeatable.(ref :h v_p and v_P)
+" nnoremap <leader>p "+gP
 
 " Next/Previous Search Result (with centering the result)
 nnoremap <expr> n 'Nn'[v:searchforward] . 'zv'
@@ -350,26 +336,11 @@ xnoremap # :<C-u>call <SID>VSetSearch('?')<CR>?<C-R>=@/<CR><CR>
 " The & command is a synonym for :s, which repeats the last substitution without remembering flags.
 " Making & trigger the :&& command is more useful.  It preserves flags and therefore produces more consistent results.
 nnoremap & :&&<cr>
-xnoremap & :&&<cr>
+xnoremap & :'<,'>&&<cr><esc>
 
 " -- quickfix and location list -----------------------------------
-nnoremap <silent> <M-q> :call <SID>Toggle_qf_loc_list("quickfix", 0)<cr>
-nnoremap ]q :cnext<cr>
-nnoremap [q :cprevious<cr>
-nnoremap ]Q :clast<cr>
-nnoremap [Q :cfirst<cr>
-
-nnoremap <silent> <M-Q> :call <SID>Toggle_qf_loc_list("location", 0)<cr>
-nnoremap ]l :lnext<cr>
-nnoremap [l :lprevious<cr>
-nnoremap ]L :llast<cr>
-nnoremap [L :lfirst<cr>
-
-" call make silently
-nnoremap <leader>B :make<cr>
-
-cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() =~# '^grep')  ? 'silent grep': 'grep'
-cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() =~# '^lgrep') ? 'silent lgrep' : 'lgrep'
+nnoremap <silent> <A-q> :call <SID>Toggle_qf_loc_list("quickfix", 0)<cr>
+nnoremap <silent> <A-Q> :call <SID>Toggle_qf_loc_list("location", 0)<cr>
 
 " Qargs populates the argument list with each files name in the quickfix list (generated by :vimgrep or :make)
 command! -nargs=0 -bar Qargs execute 'args ' QuickfixFilenames()
@@ -377,8 +348,8 @@ command! -nargs=0 -bar Qargs execute 'args ' QuickfixFilenames()
 " ------------------------------------------------------------------------------
 " built-in terminal emulation
 if v:version >= 800
-  nnoremap <silent> <M-1> :horizontal terminal<cr>
-  nnoremap <silent> <M-2> :vertical terminal<cr>
+  nnoremap <silent> <A-1> :horizontal terminal<cr>
+  nnoremap <silent> <A-2> :vertical terminal<cr>
 endif
 
 " " To map <Esc> to exit terminal-mode:
@@ -409,21 +380,21 @@ function! ToggleConcealLevel() abort
   endif
 endfunction
 
-nnoremap <silent> <leader>of :call ToggleFormat()<CR>
-function! ToggleFormat() abort
-  echo "TODO: Toggle format"
-endfunction
-
 nnoremap <silent> <leader>ol :setlocal number! <Bar> :setlocal relativenumber!<cr>
 nnoremap <leader>op :setlocal paste!<cr>
 nnoremap <silent> <leader>os :setlocal spell!<cr>
 nnoremap <silent> <leader>ow :setlocal wrap!<cr>
 
+
 " Command-line and Command Window
 cnoremap <C-o> <C-f>
 cnoremap <C-j> <Down>
 cnoremap <C-k> <Up>
+" type %% on the command-line prompt, expands to the directory of the active buffer, like :e %%, :r %%, :we %%.
+cnoremap <expr> %% getcmdtype() == ':' ? expand('%:p:h').'/' : '%%'
 
+cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() =~# '^grep')  ? 'silent grep': 'grep'
+cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() =~# '^lgrep') ? 'silent lgrep' : 'lgrep'
 " ZZ(:x), built-in Command, svae current buffer and quit the current window, and quit in case is the last edit-window.
 " same as ZZ except refuseing to abandonthe current buffer which has been edited.
 cnoreabbrev Q! q!
@@ -595,11 +566,9 @@ endfunction
 " **** main entry *****************************************************************************
 " Include complementary plugins and user's local vim config
 let plugins_path = g:vim_home . '/plugins.vim'
-let use_vim_only = 1
 
 if filereadable(plugins_path)
   execute 'source ' . plugins_path
-  let use_vim_only = 0
 endif
 
 let extra_path = g:vim_home . '/extra.vim'
@@ -607,6 +576,4 @@ if filereadable(extra_path)
   execute 'source ' . extra_path
 endif
 
-if use_vim_only == 1
-  silent! colorscheme habamax
-endif
+" silent! colorscheme habamax
