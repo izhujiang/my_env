@@ -20,7 +20,7 @@ let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
 
 " set verbose = 16      " For debugging script.
 
-" The Vim distribution comes with a few packages that you can optionally use.
+" The Vim distribution comes with a few packages ($VIMRUNTIME/pack/dist/opt/) that you can optionally use.
 "
 " Extended matching with '%', makes the '%' command jump to matching HTML tags, if/else/endif in Vim scripts, etc.
 " %	Cycle forward through matching groups, such as 'if', 'else', 'endif', as specified by |b:match_words|.
@@ -29,21 +29,25 @@ let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
 " ]%	Go to [count] next unmatched group
 " a%	In Visual mode, select the matching group,
 packadd! matchit
+
 packadd! editorconfig
+
 " The comment package, allows to toggle comments for a single line, a range of lines or a selected text object.
 " gc{motion}	to toggle comments for the selected motion
 " {Visual}gc	to comment/uncomment the highlighted lines.
 packadd! comment
+
 "packadd! nohlsearch
 
 " *****************************************************************************
-" mapleader: This is a shorthand to refer to the leader key inside key mapping definitions (e.g., <Leader>).
-" g:mapleader: This is the actual global variable that stores the value of mapleader. It can be used programmatically if you need to reference or manipulate the leader key setting in your Vim configuration or scripts.
 if v:version >= 900
   let	g:mapleader = ','
+  let	g:maplocalleader = ' '
+  " or
+  " let	g:maplocalleader = "\<Space>"
 else
   let mapleader = ','
-  let maplocalleader = '-'
+  let maplocalleader = ' '
 endif
 " mapping the reverse character search command to another key.
 noremap <Bslash> ,
@@ -58,7 +62,7 @@ set noswapfile
 set backspace=eol,start,indent
 set clipboard^=unnamed            " enable system commands(⌘-c/x/v) dealing with 'unnamed' register
 if has('unnamedplus')
-  set clipboard^=unnamed,unnamedplus
+  set clipboard^=unnamedplus
 endif
 set cmdheight=2
 set complete+=i
@@ -137,7 +141,7 @@ set sidescrolloff=8
 set smarttab
 " set spell
 " set spelllang=fr    "default en
- set spelloptions+="noplainbuffer"
+set spelloptions+=camel
 " setlocal spellfile+=~/.dict/spellfile/fr.utf-8.add
 "
 " set statusline=%F%m%r%h%w%=(%{&ff}/%Y)\ (line\ %l\/%L,\ col\ %c)\
@@ -151,6 +155,8 @@ set titlestring=%F
 
 " set undofile
 set undolevels=2000
+" idle time to trigger, the swap file will be written to disk, set noswapfile to disable swap file.
+" also used for the |CursorHold| autocommand event.
 set updatetime=2000
 " set virtualedit=block
 " set viminfo='20,\"50,:20,/20,%,n~/.viminfo      " When Vim is started and the 'viminfo' option is non-empty,
@@ -162,20 +168,21 @@ set wildmode=list:longest,list:full
 set wildignorecase
 set wildignore+=*.o,*.obj,.git,*.rbc,*.pyc,__pycache__,*.sqlite,*.db
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
-if has("win16") || has("win32")
+if has('win16') || has('win32')
     set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,*/.DS_Store
 else
     set wildignore+=.git\*,.hg\*,.svn\*
 endif
 set winminwidth=5
-set nowrap                         " Don't Wrap lines (it is stupid, except raw document or markdown.)
+" Don't Wrap lines (it is stupid, except raw document or markdown.)
+set nowrap
 "set whichwrap+=[,],<,>,h,l
 
 "------------------------------------------------------------------------------
 " key mapping (map commands)and abbreviations
 "------------------------------------------------------------------------------
 " temporarily enable for debugging vim config file
-" noremap <silent> <leader>sv :source $MYVIMRC<cr>
+" noremap <silent> <leader>sv :source $MYVIMRC<CR>
 
 " Disable arrowskeys and force to forget the mapping (trick)
 noremap <Up> <Nop>
@@ -185,30 +192,30 @@ noremap <Right> <Nop>
 
 " -- Navigation -----------------------------------
 " buffer list
-nnoremap ]a :next<cr>
-nnoremap [a :previous<cr>
-nnoremap ]A :last<cr>
-nnoremap [A :first<cr>
+nnoremap ]a :next<CR>
+nnoremap [a :previous<CR>
+nnoremap ]A :last<CR>
+nnoremap [A :first<CR>
 " argument list
-nnoremap ]b :bnext<cr>
-nnoremap [b :bprevious<cr>
-nnoremap ]B :blast<cr>
-nnoremap [B :bfirst<cr>
+nnoremap ]b :bnext<CR>
+nnoremap [b :bprevious<CR>
+nnoremap ]B :blast<CR>
+nnoremap [B :bfirst<CR>
 " quickfix list
-nnoremap ]q :cnext<cr>
-nnoremap [q :cprevious<cr>
-nnoremap ]Q :clast<cr>
-nnoremap [Q :cfirst<cr>
+nnoremap ]q :cnext<CR>
+nnoremap [q :cprevious<CR>
+nnoremap ]Q :clast<CR>
+nnoremap [Q :cfirst<CR>
 " location list
-nnoremap ]l :lnext<cr>
-nnoremap [l :lprevious<cr>
-nnoremap ]L :llast<cr>
-nnoremap [L :lfirst<cr>
+nnoremap ]l :lnext<CR>
+nnoremap [l :lprevious<CR>
+nnoremap ]L :llast<CR>
+nnoremap [L :lfirst<CR>
 " tag matchlist
-nnoremap ]t :tnext<cr>
-nnoremap [t :tprevious<cr>
-nnoremap ]T :tlast<cr>
-nnoremap [T :tfirst<cr>
+nnoremap ]t :tnext<CR>
+nnoremap [t :tprevious<CR>
+nnoremap ]T :tlast<CR>
+nnoremap [T :tfirst<CR>
 
 
 " diff/change
@@ -224,26 +231,26 @@ nnoremap [T :tfirst<cr>
 
 " use built-in gt/gT for :tabnext/tabprev or Ex-commands directly
 " OR use (better) tmux to arrange workspaces.
-" nnoremap gt :tabnext<cr>
-" nnoremap gT :tabprev<cr>
-"
+" nnoremap gt :tabnext<CR>
+" nnoremap gT :tabprev<CR>
+
 " -- buffers and augument list -----------------------------------
 cnoremap <leader>% :lcd %:p:h<CR>
-nnoremap <leader>e :e <C-R>=expand("%:p:h") . "/" <cr>
-nnoremap <leader>n :enew \| startinsert <cr>
-nnoremap <silent> <leader>w :w<cr>
-nnoremap <silent> <leader>W :noautocmd w<cr>
+nnoremap <leader>e :e <C-R>=expand('%:p:h') . '/' <CR>
+nnoremap <leader>n :enew \| startinsert <CR>
+nnoremap <silent> <leader>w :w<CR>
+nnoremap <silent> <leader>W :noautocmd w<CR>
 nnoremap <silent> <Leader>c :bdelete<CR>
 nnoremap <silent> <Leader>C :bwipeout<CR>
 " Alternate file
-" <C-^>/<C-6>, or :buf #<cr>
+" <C-^>/<C-6>, or :buf #<CR>
 
 " -- windows(ventana) and tab pages -----------------------------------
 " window commands prefixing with CTRL-W is quite good.
 " nmap <silent> <leader>v <C-w>
 
-noremap <leader><Bar> :vsplit<cr>
-noremap <leader>- :split<cr>
+nnoremap <leader><Bar> :vsplit<CR>
+nnoremap <leader>- :split<CR>
 
 "navigate  windows
 " Use builtin <C-w>hjkl keybinds to jump between windows
@@ -291,16 +298,16 @@ command! -nargs=0 CTagsGen execute 'silent !ctags -R --exclude=.git --fields=+l'
 " dp (diff put) for :diffput (modify another buffer to undo difference with the current buffer)
 
 " clean highlight, <C-l>, On macOS, used as default shortcut for sending a newline in many applications.
-nnoremap <silent> <C-l> :nohlsearch<cr>
+nnoremap <silent> <C-l> :nohlsearch<CR>
 nnoremap <silent> <leader>gu :nohlsearch<CR>:diffupdate<CR>
 
 "better move lines up/down
-nnoremap <A-m> :m .+1<cr>
-nnoremap <A-S-m> :m .-2<cr>
-inoremap <A-S-m> <Esc>:m .-2<cr>gi
-inoremap <A-m> <Esc>:m .+1<cr>gi
-vnoremap <A-m> :m '>+1<cr>gv=gv
-vnoremap <A-S-m> :m '<-2<cr>gv=gv
+nnoremap <A-m> :m .+1<CR>
+nnoremap <A-S-m> :m .-2<CR>
+inoremap <A-S-m> <Esc>:m .-2<CR>gi
+inoremap <A-m> <Esc>:m .+1<CR>gi
+vnoremap <A-m> :m '>+1<CR>gv=gv
+vnoremap <A-S-m> :m '<-2<CR>gv=gv
 
 " CAUTION
 "	Single quotes (') are for literal strings (no special key interpretation).
@@ -335,12 +342,12 @@ xnoremap # :<C-u>call <SID>VSetSearch('?')<CR>?<C-R>=@/<CR><CR>
 "
 " The & command is a synonym for :s, which repeats the last substitution without remembering flags.
 " Making & trigger the :&& command is more useful.  It preserves flags and therefore produces more consistent results.
-nnoremap & :&&<cr>
-xnoremap & :'<,'>&&<cr><esc>
+nnoremap & :&&<CR>
+xnoremap & :'<,'>&&<CR><esc>
 
 " -- quickfix and location list -----------------------------------
-nnoremap <silent> <A-q> :call <SID>Toggle_qf_loc_list("quickfix", 0)<cr>
-nnoremap <silent> <A-Q> :call <SID>Toggle_qf_loc_list("location", 0)<cr>
+nnoremap <silent> <A-q> :call <SID>Toggle_qf_loc_list('quickfix', 0)<CR>
+nnoremap <silent> <A-Q> :call <SID>Toggle_qf_loc_list('location', 0)<CR>
 
 " Qargs populates the argument list with each files name in the quickfix list (generated by :vimgrep or :make)
 command! -nargs=0 -bar Qargs execute 'args ' QuickfixFilenames()
@@ -348,10 +355,11 @@ command! -nargs=0 -bar Qargs execute 'args ' QuickfixFilenames()
 " ------------------------------------------------------------------------------
 " built-in terminal emulation
 if v:version >= 800
-  nnoremap <silent> <A-1> :horizontal terminal<cr>
-  nnoremap <silent> <A-2> :vertical terminal<cr>
+  nnoremap <silent> <A-1> :horizontal terminal<CR>
+  nnoremap <silent> <A-2> :vertical terminal<CR>
 endif
 
+" TODO: keymap in terminal-mode
 " " To map <Esc> to exit terminal-mode:
 " tnoremap <Esc> <C-\><C-n>
 " " <C-v><Esc> (Verbatim escape) send an Escape key to the program running inside the terminal buffer.
@@ -380,11 +388,10 @@ function! ToggleConcealLevel() abort
   endif
 endfunction
 
-nnoremap <silent> <leader>ol :setlocal number! <Bar> :setlocal relativenumber!<cr>
-nnoremap <leader>op :setlocal paste!<cr>
-nnoremap <silent> <leader>os :setlocal spell!<cr>
-nnoremap <silent> <leader>ow :setlocal wrap!<cr>
-
+nnoremap <silent> <leader>on :setlocal number! <Bar> :setlocal relativenumber!<CR>
+nnoremap <leader>op :setlocal paste!<CR>
+nnoremap <silent> <leader>os :setlocal spell!<CR>
+nnoremap <silent> <leader>ow :setlocal wrap!<CR>
 
 " Command-line and Command Window
 cnoremap <C-o> <C-f>
@@ -417,18 +424,27 @@ iabbrev cc Copyright 2024 Jiang Zhu, all rights reserved.
 augroup event_buffer
   autocmd!
 
-  autocmd FileType txt,markdown,gitcommit setlocal spell wrap linebreak
   autocmd FileType gitcommit,gitrebase,gitconfig set bufhidden=delete
-  autocmd FileType help,qf,fugitive call s:close_with_q()
+  autocmd FileType txt,markdown,gitcommit setlocal spell wrap linebreak
+
+  if executable('lldb')
+    autocmd FileType c,c++ call s:Config_termdebug(['lldb', '--'])
+  else
+    autocmd FileType c,c++ call s:Config_termdebug('gdb')
+  endif
+  if executable('rust-lldb')
+    autocmd FileType rust call s:Config_termdebug('rust-lldb')
+  endif
 
   " go to last loc when opening a buffer
-  autocmd BufReadPost * call s:restore_cursor()
-  autocmd BufWritePre * call s:auto_create_dir(expand("<afile>"))
+  autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif
+  autocmd BufReadPost * call s:Close_with_q()
+
+  autocmd BufWritePre * call s:Auto_create_dir(expand("<afile>"))
 augroup END
 
 augroup event_window
   autocmd!
-  autocmd QuitPre * call CloseIfLastWindow()
   " Resize splits automatically when Vim window is resized
   autocmd VimResized * tabdo wincmd =
 
@@ -436,7 +452,6 @@ augroup event_window
       " autocmd TerminalOpen * if &buftype == 'terminal' | :startinsert | endif
       autocmd BufWinEnter,WinEnter * if &buftype == 'terminal' | silent! normal i | endif
       " autocmd BufLeave * if &buftype == 'terminal' | silent! stopinsert | endif
-      " TODO:wait for WinClosed event available in coming version vim 8.2.3591
       if v:versionlong >= 8023591
         autocmd WinClosed * if &buftype == 'terminal' | bdelete! | endif
       endif
@@ -445,16 +460,47 @@ augroup END
 
 " *****************************************************************************
 " Helper Functions
+function! s:Close_with_q() abort
+  " Skip normal buffers
+  if &buftype ==# ''
+    return
+  endif
 
-" Define the function to close buffers with <q>
-function! s:close_with_q()
   setlocal nobuflisted
-  nnoremap <buffer> q :close<CR>
+  setlocal bufhidden=wipe
+  nnoremap <silent> <buffer> q :call <SID>smart_close()<CR>
+endfunction
+
+function! s:smart_close() abort
+  let l:winid = win_getid()
+  let l:wininfo = getwininfo(l:winid)[0]
+  let l:ft = &filetype
+
+  " Handle quickfix and loclist windows
+  if get(l:wininfo, 'quickfix', 0)
+    " Check if it's a location list (not quickfix)
+    if get(l:wininfo, 'loclist', 0)
+      lclose
+      return
+    else
+      cclose
+      return
+    endif
+  endif
+
+  " Handle known special filetypes
+  if l:ft ==# 'help' || l:ft ==# 'man' || l:ft ==# 'lspinfo'
+    quit
+  " elseif l:ft =~# '^fzf' || l:ft ==# 'TelescopePrompt'
+    " close
+  else " default close
+    close
+  endif
 endfunction
 
 " Quickfix
 function! s:Toggle_qf_loc_list(list_type, forced)
-  if a:list_type ==# "quickfix"
+  if a:list_type ==# 'quickfix'
     if getqflist({'winid': 1}).winid != 0
       cclose
     else
@@ -484,59 +530,9 @@ function! QuickfixFilenames()
   return join(map(values(buffer_numbers), 'fnameescape(v:val)'))
 endfunction
 
-" TODO: How to deal with E947: Job still running in buffer '!/bin/zsh'
-function! CloseIfLastWindow()
-  " Define non-essential filetypes
-  " TODO: make non_essential_filetypes global, let plugins to extend it.
-  let g:non_essential_filetypes = [
-        \ 'help',
-        \ 'qf',
-        \ 'netrw',
-        \ 'fugitive',
-        \ ]
-
-  " Get the current window and tabpage information
-  let win_id = win_getid()
-  " Popup window
-  " The error “Not allowed in a popup window” occurs when certain commands or actions are attempted inside a popup window where they are restricted.
-  " This is a limitation in Vim designed to prevent actions that would disrupt or conflict with the functioning of the popup window.
-  if winnr() == 0
-    " TODO: might NOT be right to exit terminal, close popup window and keep term_getjob running behind
-    " if &buftype == 'terminal'
-    "   let l:bufnr = bufnr('%')
-    "   call term_sendkeys(l:bufnr, 'exit\n')
-    " endif
-    call popup_close(win_id)
-    return
-  endif
-
-  let wins = tabpagewinnr(tabpagenr(), '$')
-
-  " Define a function to check if a window is essential
-  function! IsEssentialWin(win_id)
-    let buf = winbufnr(a:win_id)
-    let ft = getbufvar(buf, '&filetype')
-    " Check if the filetype is not in the non-essential list
-    return index(g:non_essential_filetypes, ft) == -1
-  endfunction
-
-" Filter essential windows
-  let essential_wins = filter(range(1, wins), 'IsEssentialWin(v:val)')
-  let win_count = len(essential_wins)
-
-  " Close non-essential windows if only one essential window remains
-  if win_count == 1 && IsEssentialWin(win_id)
-    for win_num in range(wins, 1, -1)  " win_nums always be [1, wincount], so to iterate closing windows, we have to iterate from [win_count, 1]
-      let cur_win_id = win_getid(win_num)
-      if cur_win_id !=win_id
-        exec win_num . "wincmd c"
-      endif
-    endfor
-  endif
-endfunction
-
 " Define the function that handles directory creation
-function! s:auto_create_dir(file)
+function! s:Auto_create_dir(file)
+  " auto_create_dir
   " Skip URLs (e.g. network paths like 'http://', 'ftp://', etc.)
   if a:file =~ '^\\w\\w\\+://'
     return
@@ -545,23 +541,148 @@ function! s:auto_create_dir(file)
   " Get the real file path or use the match if the path is invalid
   let l:file_path = fnamemodify(a:file, ':p:h')
   " Create the directory path if it doesn't exist
-  call mkdir(l:file_path, "p")
+  call mkdir(l:file_path, 'p')
 endfunction
 
-" Define the function to restore the last known cursor position
-function! s:restore_cursor()
-  let exclude = ['gitcommit']
-  if index(exclude, &filetype) >= 0
-    return
-  endif
 
-  let l:mark = getpos('"')
-  let lcount = line('$')
-  if l:mark[1] > 0 && l:mark[1] <= lcount
-    call cursor(l:mark[1], l:mark[2])
+" Termdebug is Vim's built-in terminal debugger interface that debug programs (primarily C/C++) directly within Vim using GDB compatible Debugger.
+" cmd: debugger, string or string list [cmd, arguments]
+" c/c++, lldb, gdb
+" rust, rust-lldb, rust-gdb
+function! s:Config_termdebug(debugger)
+  if !exists('g:termdebug_config')
+    " \ 'substitute_path' -- map remote to local files for remote debugging. more info :h termdebug-remote-window
+    "
+    " \ 'variables_window': v:true,
+    " \ 'variables_window_height': 10,
+    " \ 'disasm_window': v:true,
+    " \ 'disasm_window_height': 15,
+    "
+    let g:termdebug_config = {
+    \ 'wide': 163,
+    \ 'sign': '>>',
+    \ 'sign_decimal': v:true,
+    \ 'winbar': v:false,
+    \ 'evaluate_in_popup': v:true,
+    \ 'debug': v:false,
+    \ 'close_on_exit': v:true,
+    \ 'map_K': v:false,
+    \ 'map_minus': v:false,
+    \ 'map_plus': v:false,
+    \ }
+
+    " GDB command prompt that appears in the terminal window
+    " 'use_prompt': v:true    -- true on macOS, change the layout windows (left:gdb, middle:program, right:source), otherwise crash (no idea yet)
+    " 'use_prompt': v:false   -- false on linux, the layout of windows (left-top: gdb, left-bottom: program, right: source) is perfect.
+    if !(a:debugger is 'gdb')
+      let g:termdebug_config['use_prompt'] = v:true
+      let  g:termdebug_config['command'] = a:debugger
+    endif
+    packadd termdebug
+
+  " Common Cmds in gdb window:
+  " - CTRL-C	interrupt the program
+  " - next		execute the current line and stop at the next line
+  " - step		execute the current line and stop at the next statement,
+      " entering functions
+  " - until		execute until past the current cursor line or past a specified
+      " position or the current stack frame returns
+  " - finish	execute until leaving the current function
+  " - where		show the stack
+  " - frame N	go to the Nth stack frame
+  " - continue	continue execution
+
+    nnoremap <silent> <leader>tb :Termdebug<CR>
+
+    " usefull Commands, Jump to target window
+    " :Gdb
+    " :Program
+    " :Source
+    " :Var
+    " :Asm
+
+    " Hook into Termdebug lifecycle events
+    augroup TermdebugKeymaps
+      autocmd!
+      autocmd User TermdebugStartPost call timer_start(50, { -> s:TermdebugKeymaps(v:true) })
+      autocmd User TermdebugStopPost  call s:TermdebugKeymaps(v:false)
+    augroup END
   endif
 endfunction
 
+" Storage riginal mappings
+let s:saved_maps = {}
+
+function! s:SaveMapping(lhs) abort
+  if !has_key(s:saved_maps, a:lhs)
+    let info = maparg(a:lhs, 'n', 0, 1)
+    if !empty(info)
+      let s:saved_maps[a:lhs] = info
+    endif
+  endif
+endfunction
+
+function! s:RestoreMapping(lhs) abort
+  if has_key(s:saved_maps, a:lhs)
+    let info = s:saved_maps[a:lhs]
+    if !empty(info)
+      execute printf('%snoremap %s %s %s',
+            \ info.mode,
+            \ info.silent ? '<silent>' : '',
+            \ a:lhs,
+            \ info.rhs)
+    endif
+    call remove(s:saved_maps, a:lhs)
+  else
+    silent! nunmap <buffer> a:lhs
+  endif
+endfunction
+
+" --- print selection or symbol under cursor ---
+ function! s:TermdebugPrint() abort
+   if mode() ==# 'v' || mode() ==# 'V'
+     " Visual mode: evaluate selected text
+     normal! "vy
+     let expr = getreg('v')
+     execute 'Evaluate ' . expr
+   else
+     " Normal mode: evaluate symbol under cursor
+     let word = expand('<cword>')
+     if !empty(word)
+       execute 'Evaluate ' . expand('<word>')
+     else
+       echomsg 'No symbol under cursor'
+     endif
+   endif
+ endfunction
+
+ " --- Toggle debug keymaps ---
+ function! s:TermdebugKeymaps(enable) abort
+   if a:enable
+     " Save existing mappings before overriding
+     for key in ['<leader>tc', '<leader>tn', '<leader>ti', '<leader>tq', 'K', '-', '+']
+       call s:SaveMapping(key)
+     endfor
+
+     " Define temporary Termdebug mappings using native commands
+     nnoremap <silent> <leader>tc :Continue<CR>
+     nnoremap <silent> <leader>tn :Over<CR>
+     nnoremap <silent> <leader>ti :Step<CR>
+     nnoremap <silent> <leader>tq :Stop<CR>
+     nnoremap <silent> - :Down<CR>
+     nnoremap <silent> + :Up<CR>
+
+     " Smart print (Evaluate)
+     nnoremap <silent> K :call <SID>TermdebugPrint()<CR>
+     xnoremap <silent> K :<C-u>call <SID>TermdebugPrint()<CR>
+
+   else
+     " Restore previously saved mappings
+     for key in keys(s:saved_maps)
+       call s:RestoreMapping(key)
+     endfor
+   endif
+ endfunction
 
 " **** main entry *****************************************************************************
 " Include complementary plugins and user's local vim config
