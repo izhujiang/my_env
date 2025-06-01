@@ -120,7 +120,7 @@ alias ga="git add"
 alias gd="git diff"
 alias gc="git commit"
 alias dv="vi -d"
-alias gg="lazygit"
+alias g="lazygit"
 
 alias cl="clear"
 # alias h="history"
@@ -172,17 +172,11 @@ alias tt="tmuxinator"
 alias mux="tmuxinator"
 
 alias idea='${HOME}/idea'
-z() {
-  local dir=$(
-    _z 2>&1 |
-      fzf --height 40% --layout reverse --info inline \
-        --nth 2.. --tac --no-sort --query "$*" \
-        --bind 'enter:become:echo {2..}'
-  ) && cd "$dir"
-}
 
 # fzf version >= 0.48.0
 eval "$(fzf --zsh)"
+
+eval "$(zoxide init zsh)"
 
 # fzf-git.sh project provides a bunch of key bindings for completing Git objects. You should definitely check it out.
 

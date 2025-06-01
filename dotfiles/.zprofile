@@ -70,33 +70,7 @@ export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target
   --preview 'tree -C {}'"
 
-# ripgrep->fzf->vim [QUERY]
-rfv() (
-  RELOAD='reload:rg --column --color=always --smart-case {q} || :'
-  OPENER='if [[ $FZF_SELECT_COUNT -eq 0 ]]; then
-            vim {1} +{2}     # No selection. Open the current line in Vim.
-          else
-            vim +cw -q {+f}  # Build quickfix list for the selected items.
-          fi'
-  fzf --disabled --ansi --multi \
-    --bind "start:$RELOAD" --bind "change:$RELOAD" \
-    --bind "enter:become:$OPENER" \
-    --bind "ctrl-o:execute:$OPENER" \
-    --bind 'alt-a:select-all,alt-d:deselect-all,ctrl-/:toggle-preview' \
-    --delimiter : \
-    --preview 'bat --style=full --color=always --highlight-line {2} {1}' \
-    --preview-window '~4,+{2}+4/3,<80(up)' \
-    --query "$*"
-)
-
 # 3. ide-level env and tools
-# golang
-export GOPATH=${HOME}/workspace/go
-export GO111MODULE=on
-export PATH=${GOPATH}/bin:${PATH}
-
-# rust
-[ -d "${HOME}/.cargo/bin" ] && export PATH="${HOME}/.cargo/bin:${PATH}"
 
 SYSOS=$(uname -s)
 UNAME_MACHINE="$(uname -m)"
@@ -114,22 +88,26 @@ fi
 
 if [ -d "$HOMEBREW_PREFIX" ]; then
   export HOMEBREW_NO_ANALYTICS=1
+  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
+  export INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}";
 
-  # # ruby
+  # ruby
   export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
 
-  # # llvm
+  # llvm
   export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
   # # setting explicitly the environment variables for CC and CXX to confirm the correct compiler
   export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
   export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
 
-  # export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib"
-  # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/llvm/include"
+  export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib"
+  export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/llvm/include"
 
-  # # java
-  export PATH="${HOMEBREW_PREFIX}/opt/openjdk/bin:$PATH"
-  # For compilers to find openjdk
+  # java
+  # export JAVA_HOME="${HOMEBREW_PREFIX}/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+  # export DYLD_LIBRARY_PATH="$JAVA_HOME/lib"
+  # export PATH="${JAVA_HOME}/bin:$PATH"
+  # # For compilers to find openjdk
   # export CPPFLAGS="-I${HOMEBREW_PREFIX}/opt/openjdk/include"
 
   export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:$PATH"
@@ -139,18 +117,30 @@ fi
 if [ -d "${HOME}/.pyenv/bin" ]; then
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
+fi
+
+if [ -n "$(command -v pyenv)" ]; then
   eval "$(pyenv init -)"
-# Load pyenv-virtualenv automatically
-# eval "$(pyenv virtualenv-init -)"
+  # Load pyenv-virtualenv automatically
+  # eval "$(pyenv virtualenv-init -)"
 fi
 
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 
-[ -d "${HOME}/.local/bin" ] && export PATH="${HOME}/.local/bin:${PATH}"
+# golang
+export GOPATH=${HOME}/workspace/go
+export GO111MODULE=on
+export PATH=${GOPATH}/bin:${PATH}
+
+# rust
+[ -d "${HOME}/.cargo/bin" ] && export PATH="${HOME}/.cargo/bin:${PATH}"
+
 # export PATH="${HOME}/.deno/bin:${PATH}"
 # export PATH="${HOME}/.docker/bin:${PATH}"
+
+[ -d "${HOME}/.local/bin" ] && export PATH="${HOME}/.local/bin:${PATH}"
 
 [ -e "${HOME}/.iterm2_shell_integration.zsh" ] && source "${HOME}/.iterm2_shell_integration.zsh"
 [ -e "${HOME}/.zprofile.local" ] && . "${HOME}/.zprofile.local"

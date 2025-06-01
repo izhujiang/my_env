@@ -5,7 +5,6 @@ SYSOS=$(uname -s)
 UNAME_MACHINE=$(uname -m)
 DISTRO=""
 PM=""
-SYS_PACKAGES=""
 
 if [ "$SYSOS" = "Darwin" ]; then
   if [ "${UNAME_MACHINE}" = "arm64" ]; then
@@ -18,106 +17,6 @@ if [ "$SYSOS" = "Darwin" ]; then
 elif [ "$SYSOS" = "Linux" ]; then
   HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
 fi
-
-# defines packages to be installed
-prepareSystemPackages() {
-  if [ "${SYSOS}" = "Darwin" ]; then
-    SYS_PACKAGES="
-      curl git openssl
-      llvm cmake ninja
-      readline sqlite3 xz zlib
-      luajit gettext libtool
-      reattach-to-user-namespace gnupg gnu-sed
-      go perl node python3 pyenv luarocks
-      rust
-      tmux tmuxinator ripgrep bat fd z broot prettyping diff-so-fancy htop tldr fzf git-flow gh universal-ctags
-      clangd
-      vim neovim neovim-remote
-      nginx
-    "
-  elif [ "${SYSOS}" = "Linux" ]; then
-    if [ $PM = "brew" ]; then
-      SYS_PACKAGES="
-        curl git openssl
-        llvm cmake ninja
-        zlib libtool bzip2 libffi libxml2 libxmlsec1
-        readline sqlite3 xz  xclip gettext
-        go perl node python3 pyenv luarocks
-        tmux tmuxinator ripgrep bat fd z broot prettyping diff-so-fancy htop tldr fzf git-flow gh universal-ctags
-        clangd
-        vim neovim neovim-remote
-        nginx
-      "
-    else
-      case $DISTRO in
-      "Raspbian")
-        # TODO: remove non-necessary *-devs
-        SYS_PACKAGES="
-          curl git
-          xclip fzf fd-find ripgrep openssl
-          build-essential
-          cmake autoconf
-          libtool libtool-bin libreadline-dev libsqlite3-dev libssl-dev libbz2-dev zlib1g-dev libffi-dev
-          python3 python3-dev golang-go
-        "
-        ;;
-      "Ubuntu")
-        SYS_PACKAGES="
-          git file procps curl
-          xclip ack fzf bat fd-find ripgrep openssl
-          openssh-server
-          build-essential
-          cmake autoconf ninja-build
-          gettext unzip libpcre3
-          apt-transport-https ca-certificates gnupg-agent software-properties-common
-          libtool libtool-bin libreadline-dev libsqlite3-dev libssl-dev libluajit-5.1-dev
-          libpcre3-dev libssl-dev libbz2-dev zlib1g-dev libgd-dev libffi-dev
-          clangd
-          python3 python3-dev golang-go nodejs
-          tmux
-          git-flow gh prettyping jq
-          shell spell shellcheck net-tools
-          nginx
-        "
-        ;;
-      "Alpine")
-        # doas or sudo
-        SYS_PACKAGES="
-          git curl wget unzip gzip composer xclip ack bat fd ripgrep openssl
-          build-base cmake linux-headers gcompat
-          tree-sitter
-          nodejs npm
-          clang-dev
-          rust cargo rust-analyzer
-          go gopls
-          python3 py3-pip ruff
-          ruby
-          lua-language-server
-          shellcheck jq
-          git-flow github-cli
-          neovim neovim-doc py3-pynvim luarocks
-          net-tools tmux tmuxinator
-          fzf
-        "
-        ;;
-      "Arch")
-        SYS_PACKAGES="
-          git curl file openssh-server
-          base-devel
-        "
-        ;;
-
-      *)
-        printf "Distro %s is not supported. \n" "$DISTRO"
-        false
-        ;;
-      esac
-    fi
-  else
-    printf "Not yet implemented: install packages on OS %s.\n" "$SYS_PACKAGES"
-    false
-  fi
-}
 
 # --------------------------------------------------------------------------
 # check memory and must-have commands
@@ -146,7 +45,7 @@ checkPrerequisites() {
   esac
 
   if [ "$SYSOS" = "Darwin" ] || [ -d "/home/linuxbrew/.linuxbrew" ]; then
-    [ -x "${HOMEBREW_PREFIX}/bin/brew" ] && [ -x "${HOMEBREW_PREFIX}/bin/bash" ] && [ -x "${HOMEBREW_PREFIX}/bin/zsh" ] || (
+    [ -x "${HOMEBREW_PREFIX}/bin/brew" ] || (
       printf "verify homebrew, bash and zsh. homebrew might be broken, or bash/zsh is not installed correctly via homebrew.\n"
       false
     )
@@ -168,6 +67,7 @@ InstallPrerequisites() {
       ./install_brew.sh
       # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+      # Option to install XCode Command Line Tools:
       # If you haven't already installed Xcode Command Line Tools,
       # you'll see a message that "The Xcode Command Line Tools will be installed."
       # Press return to continue when prompted by the Homebrew installation script.
@@ -177,17 +77,13 @@ InstallPrerequisites() {
       brew doctor
 
       brew analytics off # disable Homebrew’s analytics
-      brew tap homebrew/cask
-      brew tap go-delve/delve
-      brew tap mongodb/brew
-      # brew tap pivotal/tap
-      brew tap golangci/tap
       brew update
     else
       eval "${HOMEBREW_PREFIX}/bin/brew shellenv"
       # HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
     fi
-    brew install bash zsh
+    # brew install bash zsh
+    # brew Install curl
 
   elif [ "$SYSOS" = "Linux" ]; then
     # TODO: install brew on linux
@@ -198,7 +94,7 @@ InstallPrerequisites() {
     case $DISTRO in
     "Raspbian" | "Ubuntu")
       sudo apt update && sudo apt upgrade
-      sudo add zsh
+      sudo apt install -y zsh
       ;;
     "Alpine")
       printf "Important: Enable community repository (/etc/apk/repositories).\n"
@@ -224,117 +120,279 @@ InstallPrerequisites() {
 }
 UninstallPrerequisites() {
   # remove brew, bash/zsh, and linuxbrew
-  printf "NOT good idea to remove homebrew, bash and zsh. \n"
+  printf "NOT good idea to remove bash and zsh. \n"
+}
+
+installPackagesWithBrew() {
+  export HOMEBREW_NO_INSTALL_CLEANUP=1
+
+  # build-essential
+  brew update && brew upgrade
+  brew install bash zsh
+  brew install curl git
+  brew install cmake ninja
+  brew install openssl@3
+
+  # use system gcc (gcc 9.3.0), not Homebrew gcc (Homebrew GCC 5.5.0_7) 5.5.0
+  # however, YouCompleteMe need gcc@5
+  # brew install gcc
+
+  # essential tools
+  brew install wget bat prettyping diff-so-fancy htop tldr
+  brew install fd ripgrep fzf zoxide
+  # Install fzf, A command-line fuzzy finder.
+  [ -x "$(brew --prefix)/opt/fzf/install" ] && "$(brew --prefix)/opt/fzf/install" --all
+  brew install reattach-to-user-namespace
+
+  # development tools
+  brew install go node
+  # llvm depends on python3, lld depends on llvm
+  brew install python3 python-setuptools
+  brew install llvm lld
+  brew luarocks composer
+  brew install protobuf
+  brew install universal-ctags git-flow gh
+  brew install shellcheck
+  brew install tmux tmuxinator
+
+  brew install vim
+  brew install neovim neovim-remote
+
+  brew install --cask iterm2
+  brew install --cask google-chrome
+  brew install --cask visual-studio-code
+
+  brew cleanup
+}
+uninstallPackagesWithBrew() {
+  brew uninstall --cask visual-studio-code
+  brew uninstall --cask google-chrome
+  brew uninstall --cask iterm2
+
+  brew uninstall shellcheck
+  brew uninstall tmuxinator tmux
+  brew uninstall neovim-remote neovim
+  brew uninstall vim
+  brew uninstall gh git-flow universal-ctags
+  brew uninstall protobuf
+  brew uninstall composer luarocks
+  brew uninstall node go
+  brew uninstall lld llvm
+  brew uninstall python-setuptools python3
+
+  brew uninstall reattach-to-user-namespace
+  brew uninstall zoxide fzf ripgrep fd
+  brew uninstall htop diff-so-fancy prettyping bat wget
+
+  brew uninstall openssl@3
+  brew uninstall ninja cmake
+  brew uninstall git curl
+  # DON'T remove bash/zsh, which disable other user's login
+  # brew uninstall zsh bash
+
+  brew cleanup
+}
+
+installPackagesWithLinuxBrew() {
+  brew install curl git
+  # llvm include clangd
+  brew install cmake ninja
+  brew install openssl@3
+  # zlib libtool bzip2 libffi libxml2 libxmlsec1
+  # readline sqlite3 xz xclip gettext
+  brew install wget bat z prettyping diff-so-fancy htop tldr
+  brew install fd ripgrep fzf jq
+  brew install universal-ctags git-flow gh
+
+  brew install python3 python-setuptools
+  brew install lld llvm
+  brew install go node luarocks
+  brew install vim neovim neovim-remote
+  brew install tmux tmuxinator
+
+  "$(brew --prefix)/opt/fzf/install" --all
+
+  # add extra packages
+  brew cleanup
+}
+uninstallPackagesWithLinuxBrew() {
+  brew uninstall tmuxinator tmux
+  brew uninstall neovim-remote neovim
+  brew uninstall vim
+  brew uninstall gh git-flow universal-ctags
+  brew uninstall python-setuptools python3
+  brew uninstall llvm lld
+  brew uninstall luarocks node go
+  brew uninstall jq fzf ripgrep fd
+  brew uninstall tldr htop diff-so-fancy prettyping z bat wget
+  brew uninstall ninja llvm
+  brew uninstall git curl
+  # DON'T remove bash/zsh, which disable other user's login
+  # brew uninstall zsh bash
+
+  brew cleanup
+}
+
+installPackagesOnRaspbian() {
+  # sudo apt update -y && sudo apt upgrade -y
+  sudo apt install -y curl git
+  sudo apt install -y xclip fd-find ripgrep fzf openssl
+  sudo apt install -y build-essential
+  sudo apt install -y cmake autoconf
+  sudo apt install -y libtool libtool-bin libreadline-dev libsqlite3-dev libssl-dev libbz2-dev zlib1g-dev libffi-dev
+  sudo apt install -y python3 python3-dev golang-go
+}
+uninstallPackagesOnRaspbian() {
+  sudo apt uninstall golang-go python3-dev python3
+  sudo apt uninstall libtool libtool-bin libreadline-dev libsqlite3-dev libssl-dev libbz2-dev zlib1g-dev libffi-dev
+  sudo apt uninstall autoconf cmake
+  sudo apt uninstall build-essential
+  sudo apt uninstall openssl fzf ripgrep fd-find xclip
+  sudo apt uninstall git curl
+}
+
+installPackagesOnUbuntu() {
+  sudo apt install -y file procps curl git
+  sudo apt install -y xclip ack bat fd-find ripgrep fzf openssl
+  sudo apt install -y build-essential
+  sudo apt install -y cmake autoconf ninja-build
+  sudo apt install -y gettext unzip libpcre3
+  sudo apt install -y apt-transport-https ca-certificates gnupg-agent software-properties-common
+  sudo apt install -y libtool libtool-bin libreadline-dev libsqlite3-dev libssl-dev libluajit-5.1-dev
+  sudo apt install -y libpcre3-dev libssl-dev libbz2-dev zlib1g-dev libgd-dev libffi-dev
+  sudo apt install -y clangd python3 golang-go nodejs
+  sudo apt install -y spell shellcheck
+  sudo apt install -y git-flow gh prettyping jq
+  sudo apt install -y tmux
+  # python3-dev
+
+  # sudo apt install -y docker-ce docker-ce-cli containerd.io
+  # post-installation steps for linux
+  # sudo usermod -aG docker "$USER"
+  # printf "Log out and log back in so that your group membership is re-evaluated.\n"
+  # printf "If testing on a virtual machine, it may be necessary to restart the virtual machine for changes to take effect.\n"
+  # printf "On a desktop Linux environment such as X Windows, log out of your session completely and then log back in.\n"
+  # printf "On Linux, you can also run the following command to activate the changes to groups:\n"
+  # printf " # newgrp docker   \n"
+}
+
+uninstallPackagesOnUbuntu() {
+  sudo apt uninstall tmux
+  sudo apt uninstall git-flow gh prettyping jq
+  sudo apt uninstall spell shellcheck
+
+  sudo apt uninstall clangd python3 golang-go nodejs
+  sudo apt uninstall libpcre3-dev libssl-dev libbz2-dev zlib1g-dev libgd-dev libffi-dev
+
+  sudo apt uninstall libtool libtool-bin libreadline-dev libsqlite3-dev libssl-dev libluajit-5.1-dev
+  sudo apt uninstall apt-transport-https ca-certificates gnupg-agent software-properties-common
+
+  sudo apt uninstall gettext unzip libpcre3
+  sudo apt uninstall cmake autoconf ninja-build
+
+  sudo apt uninstall build-essential
+  sudo apt uninstall openssl fzf ripgrep fd-find bat ack xclip
+  sudo apt uninstall file procps curl git
+}
+
+installPackagesOnAlpine() {
+  doas apk add git curl
+  doas apk add openssl wget unzip gzip xclip ack bat fd ripgrep fzf
+  doas apk add build-base cmake linux-headers gcompat
+  doas apk add tree-sitter
+  doas apk add nodejs npm
+  doas apk add clang-dev
+  doas apk add rust cargo rust-analyzer
+  doas apk add go gopls
+  doas apk add python3 py3-pip ruff
+  doas apk add ruby
+  doas apk add shellcheck jq
+  doas apk add git-flow github-cli
+  doas apk add neovim neovim-doc luarocks
+  doas apk add tmux tmuxinator
+
+  # -------------------------------------------------------------------------
+  # Required Build Dependencies for build python3 via pyenv install
+  # build-base make g++ cmake and *-dev
+  # GNU C Library compatibility layer for musl (for )
+  # build-base cmake linux-headers gcompat
+  # util-linux-dev zlib-dev bzip2-dev xz-dev libffi-dev ncurses-dev readline-dev
+  # openssl-dev gdbm-dev libnsl-dev gettext-dev
+
+  # Alpine uses musl libc instead of glibc.
+  # • Alpine uses musl libc, which is lightweight and optimized for minimal environments.
+  #   However, it lacks certain symbols and functionality provided by glibc.
+  # • The language_server_linux_arm binary is compiled for glibc-based systems
+  #   and tries to use features not available in musl libc.
+
+  # codeium (.cache/nvim/codeium/bin/1.20.9/language_server_linux_arm) have been
+  # built for a glibc-based system, which causes compatibility issues. gcompat
+  # provides basic glibc compatibility on Alpine.
+
+  # nginx
+}
+uninstallPackagesOnAlpine() {
+  doas apk del tmuxinator tmux
+  doas apk del luarocks neovim-doc neovim
+  doas apk del github-cli git-flow
+  doas apk del jq shellcheck
+  doas apk del ruby
+  doas apk del ruff py3-pip python3
+  doas apk del gopls go
+  doas apk del rust-analyzer cargo rust
+  doas apk del clang-dev
+  doas apk del npm nodejs
+  doas apk del tree-sitter
+  doas apk del gcompat linux-headers cmake build-base
+  doas apk del fzf ripgrep fd bat ack xclip gzip unzip wget openssl
+  doas apk del curl git
+}
+
+installPackagesOnArch() {
+  sudo pacman -S --needed --noconfirm git curl
+  sudo pacman -S --needed --noconfirm wget unzip gzip xclip bat fd ripgrep fzf openssl
+  sudo pacman -S --needed --noconfirm build-base cmake
+  sudo pacman -S --needed --noconfirm tree-sitter
+}
+
+uninstallPackagesOnArch() {
+  sudo pacman -R --needed --noconfirm tree-sitter
+  sudo pacman -R --needed --noconfirm build-base cmake
+  sudo pacman -R --needed --noconfirm openssl fzf ripgrep fd bat xclip gzip unzip wget
+  sudo pacman -R --needed --noconfirm curl git
 }
 
 # main entry -----------------------------------------------------------------
 InstallSystemPackages() {
   checkOsDistro || return
-  prepareSystemPackages || return
+  checkPrerequisites || return
 
   printf "Install packages with %s on %s(%s).\n" "$PM" "$SYSOS" "$DISTRO"
   if [ "$SYSOS" = "Darwin" ]; then
-    checkPrerequisites || return
+    installPackagesWithBrew
 
-    brew update && brew upgrade
-    installPackagesWithCommand "brew install" "$SYS_PACKAGES"
-    # brew link --force gettext
-    # Install fzf, A command-line fuzzy finder.
-    "$(brew --prefix)/opt/fzf/install" --all
-
-    # use system gcc (gcc 9.3.0), not Homebrew gcc (Homebrew GCC 5.5.0_7) 5.5.0
-    # however, YouCompleteMe need gcc@5
-    # brew install gcc
-    # install platform-specific tools
-    brew install --cask iterm2 google-chrome visual-studio-code
-
-    brew cleanup
   elif [ "$SYSOS" = "Linux" ]; then
+    prepareSystemPackages || return
     if [ $PM = "brew" ]; then
-      checkPrerequisites || return
-
-      # brew update && brew upgrade
-      installPackagesWithCommand "brew install" "$SYS_PACKAGES"
-      # brew link --force gettext
-      # Install fzf, A command-line fuzzy finder.
-      "$(brew --prefix)/opt/fzf/install" --all
-
-      # add extra packages
-      printf "Install vscode with sudo privilege in GUI mode, follow the instruction: \n"
-      printf "https://code.visualstudio.com/docs/setup/linux\n"
-      printf "vscode only support window, linux and macOS.\n"
-      brew cleanup
+      installPackagesWithLinuxBrew
     else
       case $DISTRO in
       "Raspbian")
-        checkPrerequisites || return
-
-        # sudo apt update -y && sudo apt upgrade -y
-        installPackagesWithCommand "sudo apt install" "$SYS_PACKAGES"
+        installPackagesOnRaspbian
         ;;
       "Ubuntu")
-        checkPrerequisites || return
-
         curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
         sudo add-apt-repository -y "deb https://dl.yarnpkg.com/debian/ stable main"
         # sudo add-apt-repository -y ppa:neovim-ppa/stable
-
         sudo apt update -y && sudo apt upgrade -y
-        installPackagesWithCommand "sudo apt install" "$SYS_PACKAGES"
 
-        # sudo apt install -y docker-ce docker-ce-cli containerd.io
-        # post-installation steps for linux
-        # sudo usermod -aG docker "$USER"
-        # printf "Log out and log back in so that your group membership is re-evaluated.\n"
-        # printf "If testing on a virtual machine, it may be necessary to restart the virtual machine for changes to take effect.\n"
-        # printf "On a desktop Linux environment such as X Windows, log out of your session completely and then log back in.\n"
-        # printf "On Linux, you can also run the following command to activate the changes to groups:\n"
-        # printf " # newgrp docker   \n"
-
+        installPackagesOnUbuntu
         ;;
       "Alpine")
-        checkPrerequisites || return
-
-        # don't update system which requires input password, update should be done when installing prerequuisites
-        #
-        # doas apk update && doas apk upgrade
-        installPackagesWithCommand "doas apk add" "$SYS_PACKAGES"
-
-        # apk -------------------------------------------------------------------------
-        # Required Build Dependencies for build python3 via pyenv install
-        # build-base make g++ cmake and *-dev
-        # GNU C Library compatibility layer for musl (for )
-        # build-base cmake linux-headers gcompat
-        # util-linux-dev zlib-dev bzip2-dev xz-dev libffi-dev ncurses-dev readline-dev
-        # openssl-dev gdbm-dev libnsl-dev gettext-dev
-
-        # Alpine uses musl libc instead of glibc.
-        # • Alpine uses musl libc, which is lightweight and optimized for minimal environments.
-        #   However, it lacks certain symbols and functionality provided by glibc.
-        # • The language_server_linux_arm binary is compiled for glibc-based systems
-        #   and tries to use features not available in musl libc.
-
-        # codeium (.cache/nvim/codeium/bin/1.20.9/language_server_linux_arm) have been
-        # built for a glibc-based system, which causes compatibility issues. gcompat
-        # provides basic glibc compatibility on Alpine.
-        # gcompat
-
-        # libtool libtool-bin
-        # libpcre3 libpcre3-dev
-
-        # use built-in package manager instead of pip
-        # sudo apk add py3-pip py3-setuptools py3-pynvim
-
-        # languages runtime, LSP and tools
-        # lua and luajit installed by neovim
-
-        # nginx
-
+        installPackagesOnAlpine
         ;;
       "Arch")
-        checkPrerequisites || return
-
-        installPackagesWithCommand "sudo pacman -S" "$SYS_PACKAGES"
+        installPackagesOnArch
         ;;
       "*")
         printf "Not yet implemented: install packages on Linux(%s).\n" "$DISTRO"
@@ -349,26 +407,27 @@ InstallSystemPackages() {
 
 UninstallSystemPackages() {
   checkOsDistro || return
-  prepareSystemPackages || return
 
   printf "Uninstall packages with %s on %s(%s) .\n" $PM $SYSOS $DISTRO
   if [ "$SYSOS" = "Darwin" ]; then
-    brew uninstall --cask iterm2 google-chrome visual-studio-code
-    uninstallPackagesWithCommand "brew uninstall" "$SYS_PACKAGES"
+    uninstallPackagesWithBrew
 
   elif [ "$SYSOS" = "Linux" ]; then
     if [ "$PM" = "brew" ]; then
-      uninstallPackagesWithCommand "brew uninstall" "$SYS_PACKAGES"
+      uninstallPackagesWithLinuxBrew
     else
       case $DISTRO in
-      "Ubuntu" | "Raspbian")
-        uninstallPackagesWithCommand "sudo apt uninstall" "$SYS_PACKAGES"
+      "Raspbian")
+        uninstallPackagesOnRaspbian
+        ;;
+      "Ubuntu")
+        uninstallPackagesOnUbuntu
         ;;
       "Alpine")
-        uninstallPackagesWithCommand "doas apk del" "$SYS_PACKAGES"
+        uninstallPackagesOnAlpine
         ;;
       "Arch")
-        uninstallPackagesWithCommand "sudo pacman -Rs" "$SYS_PACKAGES"
+        uninstallPackagesOnArch
         ;;
       *)
         printf "%s not supported yet." "$DISTRO"
@@ -378,35 +437,6 @@ UninstallSystemPackages() {
   else
     printf "%s not supported yet." "$SYSOS"
   fi
-}
-
-# $1 -- command
-# $2 -- packages
-# example: installPackagesWithCommand "sudo apk add" "$packages_with_apk"
-installPackagesWithCommand() {
-  echo "$2" | while IFS= read -r packs; do
-    packs=$(echo "$packs" | sed 's/^ *//; s/ *$//')
-    if [ -n "$packs" ]; then
-      printf "installing %s... \n" "$packs"
-      eval "$1" "$packs"
-    fi
-  done
-}
-
-# $1 -- command
-# $2 -- packages
-# example: installPackagesWithCommand "sudo apk del" "$packages_with_apk"
-uninstallPackagesWithCommand() {
-  rev_packages_list=$(echo "$2" | sed -n '1!G;h;$p')
-  echo "$rev_packages_list" | while IFS= read -r packs; do
-    packs=$(echo "$packs" | sed 's/^ *//; s/ *$//')
-    if [ -n "$packs" ]; then
-      # reverse pack list
-      rev_packs=$(echo "$packs" | tr ' ' '\n' | sed '1!G;h;$!d' | tr '\n' ' ')
-      printf "deleting %s \n" "$rev_packs"
-      eval "$1" "$rev_packs"
-    fi
-  done
 }
 
 # ------------------------------------------------------------------------------
@@ -449,13 +479,46 @@ checkOsDistro() {
       false
     fi
     # TODO: and need to test brew command exists
-    [ -d "/home/linuxbrew/.linuxbrew" ] && PM="brew" || true
+    [ -d "/home/linuxbrew/.linuxbrew" ] && PM="brew"
   else
     printf "%s is not supported now.\n" "${SYSOS}"
     false
   fi
   printf "OS distro: %s - %s.\n" "${SYSOS}" "${DISTRO}"
 }
+
+# packages installation via brew fails in the following way
+
+# $1 -- command
+# $2 -- packages
+# example: installPackagesWithCommand "sudo apk add" "$packages_with_apk"
+installPackagesWithCommand() {
+  echo "$2" | while IFS= read -r packs; do
+    packs=$(echo "$packs" | sed 's/^ *//; s/ *$//')
+    if [ -n "$packs" ]; then
+      printf "installing %s... \n" "$packs"
+      eval "$1" "$packs"
+    fi
+  done
+}
+
+# $1 -- command
+# $2 -- packages
+# example: installPackagesWithCommand "sudo apk del" "$packages_with_apk"
+uninstallPackagesWithCommand() {
+  rev_packages_list=$(echo "$2" | sed -n '1!G;h;$p')
+  echo "$rev_packages_list" | while IFS= read -r packs; do
+    packs=$(echo "$packs" | sed 's/^ *//; s/ *$//')
+    if [ -n "$packs" ]; then
+      # reverse pack list
+      rev_packs=$(echo "$packs" | tr ' ' '\n' | sed '1!G;h;$!d' | tr '\n' ' ')
+      printf "deleting %s \n" "$rev_packs"
+      eval "$1" "$rev_packs"
+    fi
+  done
+}
+
+# ------------------------------------------------------------------------------
 
 # InstallSystemPackages
 # UninstallSystemPackages

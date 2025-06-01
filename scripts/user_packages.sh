@@ -11,22 +11,26 @@ SetupUserEnv() {
   installZshPlugins
   installFonts
 
+  # install rust and rust-tools (rustup, rustc, cargo, rust-analyzer and others)
+  # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y -q --no-modify-path
+
   if [ "${SYSOS}" = "Darwin" ]; then
+    installRustPackages
     installGolangPackages
     installNodejsPackages
-    installCustomPython
     installPythonPackages
-    installRustPackages
 
     # Pre-installed macOS system Vim does not support Python 3.
     installCustomVim
     installVimPlugins
 
     installNeovimPlugins
-    # TODO: install lunarvim
+    # install lunarvim
     # curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh | bash /dev/stdin --install-dependencies
-
     installVscodePlugins
+
+    installCustomOthers
   elif [ "${SYSOS}" = "Linux" ]; then
     case $DISTRO in
     "Raspbian")
@@ -38,10 +42,8 @@ SetupUserEnv() {
       # to ensure LuaJIT is installed and properly configured before building Neovim from source.
       # sudo apt install -y build-essential cmake libtool-bin ninja-build gettext curl unzip git libluajit-5.1-dev
 
-      installGolangPackages
-      installCustomRust
       installRustPackages
-      installCustomPython
+      installGolangPackages
       installPythonPackages
       installNodejsPackages
 
@@ -54,10 +56,11 @@ SetupUserEnv() {
 
       installCustomNeovim
       installNeovimPlugins
+      installCustomOthers
       ;;
     "Alpine")
-      installGolangPackages
       installRustPackages
+      installGolangPackages
       installNodejsPackages
       InstallRubyPackages
 
@@ -82,7 +85,7 @@ SetupUserEnv() {
   setupTmux
   # # fzf version >= 0.48.0
   # fzf --zsh >"${HOME}/.fzf"
-  configShell
+  setupDotfiles
   configGitClient "Jiang Zhu" "m.zhujiang@gmail.com"
   setupSSH "m.zhujiang@gmail.com"
 
@@ -100,6 +103,8 @@ CleanUserEnv() {
   cleanTmux
 
   if [ "${SYSOS}" = "Darwin" ]; then
+    uninstallCustomOthers
+
     # remove luarvim
     uninstallVscodePlugins
     uninstallNeovimPlugins
@@ -120,6 +125,7 @@ CleanUserEnv() {
       uninstallGolangPackages
       ;;
     "Ubuntu")
+      uninstallCustomOthers
       installNeovimPlugins
       installCustomNeovim
       installVimPlugins
@@ -205,28 +211,31 @@ uninstallZshPlugins() {
 # python_3rd_packages="pip setuptools pynvim ruff imgcat cmake-language-server"
 installPythonPackages() {
   # install python 3rd party packages
-  python3 -m ensurepip --upgrade
-  python3 -m pip install --upgrade pip
+  # python3 -m ensurepip --upgrade
+  # python3 -m pip install --upgrade pip
   printf "Install 3d-party packages for python...... \n"
   printf "Current pip3: %s\n" "$(which pip3)"
   # pip3 install -U "$python_3rd_packages"
-  # pip3 install -U pip
-  pip3 install -U setuptools
-  pip3 install -U pynvim
-  pip3 install -U ruff
+  # pip3 install -U build # or
+  # pip3 install -U setuptools
   # pip3 install -U imgcat
-  # pip3 install -U cmake-language-server
+
+  # Install globally.
+  uv tool install ruff@latest
+  uv tool install debugpy@latest
+  uv tool install cmake-language-server@latest
 }
 uninstallPythonPackages() {
   # install python 3rd party packages
   printf "uninstall 3d-party packages for python...... \n"
   # rev_python_3rd_packages=$(echo "$python_3rd_packages" | tr ' ' '\n' | sed '1!G;h;$!d' | tr '\n' ' ')
   # eval pip3 uninstall "$rev_python_3rd_packages"
-  # pip3 uninstall cmake-language-server
   # pip3 uninstall imgcat
-  pip3 uninstall ruff
-  pip3 uninstall pynvim
-  pip3 uninstall setuptools
+  uv tool uninstall cmake-language-server
+  uv tool uninstall debugpy
+  uv tool uninstall ruff
+  # uv tool uninstall pynvim
+  # pip3 uninstall setuptools
   # pip3 uninstall pip
 }
 
@@ -254,11 +263,16 @@ installNodejsPackages() {
   [ -d "${HOME}/.local/lib" ] || mkdir -p "${HOME}/.local/lib"
 
   # npm install -g npm
-  # eval npm install -g "$node_3rd_packages"
-  npm install -g neovim
+
   npm install -g typescript
-  # npm install -g serve
-  # npm install -g eslint js-beautify
+  npm install -g typescript-language-server
+  npm install -g bash-language-server
+  npm install -g pyright # python lsp
+  npm install -g @biomejs/biome
+  npm install -g @commitlint/{cli,config-conventional}
+  npm install -g markdownlint-cli2
+
+  npm install -g neovim
   # npm install -g lighthouse
   # npm install -g commitizen conventional-changelog cz-conventional-changelog
 
@@ -272,15 +286,20 @@ installNodejsPackages() {
 uninstallNodejsPackages() {
   # install node.js 3d party packages
   printf "Uninstall nodejs 3d-party packages ...\n"
+  npm uninstall -g neovim
 
-  # rev_node_3rd_packages=$(echo "$node_3rd_packages" | tr ' ' '\n' | sed '1!G;h;$!d' | tr '\n' ' ')
-  # eval npm uninstall -g "$rev_node_3rd_packages"
+  npm uninstall -g markdownlint-cli2
+  npm uninstall -g @commitlint/{cli,config-conventional}
+  npm uninstall -g @biomejs/biome
+  npm uninstall -g pyright
+  npm uninstall -g bash-language-server
+  npm uninstall -g typescript-language-server
+  npm uninstall -g typescript
+
   # npm uninstall -g commitizen conventional-changelog cz-conventional-changelog
   # npm uninstall -g lighthouse
   # npm uninstall -g eslint js-beautify
   # npm uninstall -g serve
-  npm uninstall -g typescript
-  npm uninstall -g neovim
 
   # TODO: rm .npm
   # rm -rf "${HOME}/.npm"
@@ -290,61 +309,74 @@ uninstallNodejsPackages() {
 # -----------------------------------------------------------------------------
 installRustPackages() {
   printf "Install 3d-party packages for rust ...\n"
-  # cargo install selene
+  cargo install tlrc
+  cargo install tree-sitter-cli
   cargo install selene
   cargo install stylua
+  cargo install deno
+
+  # uv is available via Cargo, but must be built from Git rather than crates.io due to its dependency on unpublished crates.
+  cargo install --git https://github.com/astral-sh/uv uv
 }
 uninstallRustPackages() {
   printf "Uninstall 3d-party packages for rust ...\n"
   # Mason don't support selene on alpine
+  cargo uninstall uv
+  cargo uninstall deno
   cargo uninstall stylua
   cargo uninstall selene
+  cargo uninstall tree-sitter-cli
+  cargo uninstall tlrc
 
   rm -rf "${HOME}/.cargo"
 }
 
 # -----------------------------------------------------------------------------
 installGolangPackages() {
-  export GOPATH="$HOME/workspace/go"
   # fix issure: cannot use path@version syntax in GOPATH mode
   export GO111MODULE=on
-  printf "Install tools and packages to GOPATH: %s for golang ...\n" "${GOPATH}"
+  # golang
+  export GOPATH=${HOME}/workspace/go
+  export PATH=${GOPATH}/bin:${PATH}
 
-  go install github.com/acroca/go-symbols@latest
-  go install github.com/client9/misspell/cmd/misspell@latest
-  go install github.com/davidrjenni/reftools/cmd/fillstruct@latest
+  printf "Install tools and binaries to GOPATH: %s for golang ...\n" "${GOPATH}"
+  # developer tooling dependencies, use to assist with development, testing, build, or deployment
+  #   - staticcheck for static code analysis
+  #   - govulncheck for vulnerability scanning
+  #   - air for live-reloading applications
+  #   - ...
+  #   see: go tool management (manage developer tools: https://www.alexedwards.net/blog/how-to-manage-tool-dependencies-in-go-1.24-plus)
+
+  # ref: https://pkg.go.dev/golang.org/x
+  # Go ships with a number of builtin tools, and additional tools may be defined in the go.mod of the current module
+  go install golang.org/x/tools/...@latest
+  # golang.org/x/tools/gopls module, whose root package is a language-server protocol (LSP) server for Go.
+  go install golang.org/x/tools/gopls/...@latest
+  go install golang.org/x/pkgsite/...@latest
+  # vulnerability management includes tooling for analyzing your codebase and binaries to surface known vulnerabilities in your dependencies.
+  go install golang.org/x/vuln/...@latest
+
+  # for none-ls
+  go install github.com/davidrjenni/reftools/...@latest
   go install github.com/fatih/gomodifytags@latest
-  go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-  go install github.com/goreleaser/goreleaser@latest
-  go install github.com/haya14busa/goplay/cmd/goplay@latest
-  go install github.com/jesseduffield/lazygit@latest
   go install github.com/josharian/impl@latest
-  go install github.com/kisielk/errcheck@latest
-  go install github.com/mdempsky/gocode@latest
-  go install github.com/mrtazz/checkmake/cmd/checkmake@latest
-  go install github.com/nsf/gocode@latest
-  go install github.com/ramya-rao-a/go-outline@latest
-  go install github.com/rogpeppe/godef@latest
-  go install github.com/sqs/goreturns@latest
-  go install github.com/stamblerre/gocode@latest
-  go install github.com/zmb3/goaddimport@latest
-  go install github.com/zmb3/gogetdoc@latest
-  go install golang.org/x/lint/golint@latest
-  go install golang.org/x/tools/cmd/godoc@latest
-  go install golang.org/x/tools/cmd/goimports@latest
-  go install golang.org/x/tools/cmd/gorename@latest
-  go install golang.org/x/tools/cmd/stringer@latest
-  go install golang.org/x/tools/gopls@latest
 
-  # go packages
-  #'go get' is no longer supported outside a module.
-  # go get -- add dependencies to current module and install them
-  # go get -u github.com/cweill/gotests/...
+  go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+  go install github.com/go-delve/delve/cmd/dlv@latest   # dlv for debugging
+  go install github.com/air-verse/air@latest            # Live reload for Go apps
+  go install github.com/goreleaser/goreleaser/v2@latest # a release automation tool, supports Go, Rust, Zig, and TypeScript
+
+  go install github.com/junegunn/fzf@latest
+  go install github.com/jesseduffield/lazygit@latest
+
+  go install mvdan.cc/sh/v3/cmd/shfmt@latest                  # shell formater
+  go install github.com/mrtazz/checkmake/cmd/checkmake@latest # experimental linter/analyzer for Makefiles
+  go install github.com/client9/misspell/cmd/misspell@latest  # correct commonly misspelled English words in source files
 }
 
 uninstallGolangPackages() {
   printf "Uninstall tools and packages: %s...\n" "${GOPATH}"
-  # TODO: rm ${GOPATH}/bin/${file}
+  # rm ${GOPATH}/bin/${file}
 
   [ -z "${GOPATH}" ] && GOPATH="${HOME}/workspace/go"
   go clean -cache
@@ -401,7 +433,7 @@ installVimPlugins() {
 
   [ -d "${HOME}/.vim" ] || mkdir -p "${HOME}/.vim"
   for CFG_FILE in vimrc plugins.vim filetype.vim; do
-    cp ../dotfiles/vim/${CFG_FILE} "${HOME}/.vim/${CFG_FILE}"
+    [ -e "${HOME}/.vim/${CFG_FILE}" ] || cp ../dotfiles/vim/${CFG_FILE} "${HOME}/.vim/${CFG_FILE}"
   done
 
   if [ -x "$(which vim)" ]; then
@@ -445,39 +477,39 @@ installNeovimPlugins() {
   # if [ ! -d "${HOME}/.config/nvim" ]; then
   #   cp -r "${HOME}/repo/LeoVim" "${HOME}/.config/nvim"
   # fi
-  ln -s "${HOME}/repo/LeoVim" "${HOME}/.config/nvim"
+  [ -d "${HOME}/.config/nvim" ] || ln -s "${HOME}/repo/LeoVim" "${HOME}/.config/nvim"
 
-  if [ ! -d "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/" ]; then
+  [ -d "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/" ] || (
     mkdir -p "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/"
 
     if [ "${SYSOS}" = "Linux" ]; then
       [ -x /usr/bin/luarocks-5.1 ] && ln -s /usr/bin/luarocks-5.1 "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks"
       [ -x /usr/bin/lua ] && ln -s /usr/bin/lua "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/lua"
     elif [ "${SYSOS}" = "Darwin" ]; then
-      [ -x "${HOMEBREW_PREFIX}/bin/luarocks-5.1" ] && ln -s "${HOMEBREW_PREFIX}/bin/luarocks-5.1" "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks"
+      [ -x "${HOMEBREW_PREFIX}/bin/luarocks" ] && ln -s "${HOMEBREW_PREFIX}/bin/luarocks" "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks"
       [ -x "${HOMEBREW_PREFIX}/bin/lua" ] && ln -s "${HOMEBREW_PREFIX}/bin/lua" "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/lua"
     else
       printf "\n"
     fi
-  fi
+  )
 
-  if [ -x "$(which nvim)" ]; then
+  [ -x "$(which nvim)" ] && (
     # wait until finishing lazy and mason installations
     # nvim --headless "+Lazy! install" +30sleep +qa
     # Any command can have a bang to make the command wait till it finished.
     # sleep 30-60 seconds until mason finishes installation, lazy and mason works simultaneously.
     printf "run nvim --headless +Lazy! sync +q\n"
     nvim --headless "+Lazy! sync" +30sleep +qa
-  fi
+  )
 
 }
 
 uninstallNeovimPlugins() {
   printf "remove nvim plugins...\n"
-  if [ -d "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/" ]; then
+  [ -d "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/" ] && (
     unlink "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/lua"
     unlink "${HOME}/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks"
-  fi
+  )
 
   [ -d "${HOME}/.local/share/nvim" ] && rm -rf "${HOME}/.local/share/nvim"
   [ -d "${HOME}/.local/state/nvim" ] && rm -rf "${HOME}/.local/state/nvim"
@@ -509,113 +541,121 @@ installCustomRust() {
   # install into ${HOME}/.cargo, for linuxbrew doesn't support rust
   # curl https://sh.rustup.rs -sSf | sh -s -- -y -q --no-modify-path
   # curl https://sh.rustup.rs -sSf -y | sh -s -- -y
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y -q --no-modify-path
   . "${HOME}/.cargo/env"
 }
 
-installCustomPython() {
-  # [ -n "$1" ] && PYTHON_LATEST_VERSION="$1" || PYTHON_LATEST_VERSION="3.12.8"
+# installCustomPython() {
+#   # [ -n "$1" ] && PYTHON_LATEST_VERSION="$1" || PYTHON_LATEST_VERSION="3.12.8"
+#
+#   PYTHON_LATEST_VERSION="3.12.8"
+#   # install python3 with --enable-shared
+#   # 1. Install Dependencies:
+#   # apk add build-base glibc-dev zlib-dev libffi-dev ncurses-dev openssl-dev
+#   # 2. Download and Build Python:
+#   # wget https://www.python.org/ftp/python/3.12.8/Python-3.12.8.tgz
+#   # tar xvf Python-3.12.8.tgz
+#   # cd Python-3.12.8
+#   # ./configure --enable-shared --prefix=/usr/local
+#   # make
+#   # make install
+#   # 3. Fix Library Linking, add the Python shared library path to ldconfig:
+#   # echo "/usr/local/lib" >> /etc/ld.so.conf
+#   # ldconfig
+#   # 4. Verify Python Installation: Ensure the libpython3.so file exists.
+#   # ls /usr/local/lib/libpython3.*
+#   # --------------------------------------------
+#   # [2-4]OR Install Python via pyenv with --enable-shared:
+#   # using pyenv to install python3 instead of Alpine built-in python3,
+#   # for enable to pip3 install pynvim (the python provider of nvim)
+#   #
+#   # Python’s build system is often designed around glibc, the GNU C library.
+#   # Alpine Linux uses musl as its default C library, and while Python can be
+#   # built on Alpine Linux, certain features (like the _socket module) may break
+#   # if the build environment is not correctly configured.
+#
+#   if [ ! -d "$HOME/.pyenv" ]; then
+#     [ -z "$(command -v pyenv)" ] && curl -fsSL https://pyenv.run | bash
+#     export PYENV_ROOT="$HOME/.pyenv"
+#     [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
+#     eval "$(pyenv init -)"
+#     # pyenv latest -k 3 | xargs pyenv install
+#     # PYTHON_LATEST_VERSION=$(pyenv latest -k 3)
+#     # install cmake-language-server via mason.nvim python(<=3.12) supported
+#     # CFLAGS="-I/usr/include" LDFLAGS="-L/usr/lib"
+#     PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install "$PYTHON_LATEST_VERSION"
+#     # PYTHON_CONFIGURE_OPTS="--enable-shared --enable-optimizations" pyenv install -v "$PYTHON_LATEST_VERSION"
+#
+#     pyenv global "$PYTHON_LATEST_VERSION"
+#
+#     # Ensure that Python is compiled with shared libraries and linked
+#     # correctly (	openssl-dev, libffi-dev, zlib-dev and xz-dev ).
+#     # ldd (List Dynamic Dependencies) is a *nix utility that prints the shared libraries
+#     # required by each program or shared library specified on the command line.
+#     # ldd "$(pyenv which python3)"
+#
+#     # Verify OpenSSL After Installation (openssl-dev)
+#     # Check the _ssl module build status in the Python installation directory
+#     # ls ~/.pyenv/versions/3.12.8/lib/python3.12/lib-dynload/_ssl*
+#     printf "verify openssl version: \n"
+#     python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"
+#
+#     # Verify _socket module (dependencies: glibc-dev)
+#     printf "verify socket: \n"
+#     python3 -c "import socket; print(socket.gethostname())"
+#
+#     # If pip is missing, install it
+#     # python3 -m ensurepip --upgrade
+#     # python3 -m pip install --upgrade pip
+#   fi
+#
+#   # Issue: Python built on Alpine Linux (with musl instead of glibc) is
+#   # incompatible with certain compiled libraries used by
+#   # YouCompleteMe. Specifically, the missing symbol (PyType_GetModuleByDef)
+#   # indicates a mismatch between the version of Python used and the libraries
+#   # that YouCompleteMe depends on.
+#
+#   # 1. Ensure the required dependencies for building Python
+#   # 2. Set Environment Variables for pyenv and install Python
+#   # export PYTHON_CONFIGURE_OPTS="--enable-shared"
+#   # pyenv install 3.12.8
+#   # # or specify --enable-shared only for one installation
+#   # PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.12.8
+#   # 3. Verify Installation
+#   # ls "$(pyenv root)/versions/3.12.8/lib/"
+#   # python3 -m sysconfig | grep enable-shared
+#   # 4. Update Library Path: add the library path and refresh the linker cache
+#   # echo "$(pyenv root)/versions/3.12.8/lib" >> /etc/ld.so.conf.d/pyenv.conf
+#   # ldconfig
+#   # OR USE shared libraries by specifying library path in user environment.
+#   # export LD_LIBRARY_PATH="$(pyenv root)/versions/3.12.8/lib:$LD_LIBRARY_PATH"
+#   # To confirm the dynamic linker is using the correct library path
+#   # ldd "$(pyenv root)/versions/3.12.8/bin/python3"
+#   # 3. Rebuild YouCompleteMe
+#   # Once the LD_LIBRARY_PATH is correctly set, rebuild YouCompleteMe to ensure
+#   # it can find the shared library,
+#   # cd ~/.vim/plugged/YouCompleteMe
+#   # python3 install.py --all
+#
+#   # --------------------------------------------
+# }
 
-  PYTHON_LATEST_VERSION="3.12.8"
-  # install python3 with --enable-shared
-  # 1. Install Dependencies:
-  # apk add build-base glibc-dev zlib-dev libffi-dev ncurses-dev openssl-dev
-  # 2. Download and Build Python:
-  # wget https://www.python.org/ftp/python/3.12.8/Python-3.12.8.tgz
-  # tar xvf Python-3.12.8.tgz
-  # cd Python-3.12.8
-  # ./configure --enable-shared --prefix=/usr/local
-  # make
-  # make install
-  # 3. Fix Library Linking, add the Python shared library path to ldconfig:
-  # echo "/usr/local/lib" >> /etc/ld.so.conf
-  # ldconfig
-  # 4. Verify Python Installation: Ensure the libpython3.so file exists.
-  # ls /usr/local/lib/libpython3.*
-  # --------------------------------------------
-  # [2-4]OR Install Python via pyenv with --enable-shared:
-  # using pyenv to install python3 instead of Alpine built-in python3,
-  # for enable to pip3 install pynvim (the python provider of nvim)
-  #
-  # Python’s build system is often designed around glibc, the GNU C library.
-  # Alpine Linux uses musl as its default C library, and while Python can be
-  # built on Alpine Linux, certain features (like the _socket module) may break
-  # if the build environment is not correctly configured.
-  if [ ! -e "$HOME/.pyenv/bin/pyenv" ]; then
-    curl https://pyenv.run | bash
-    export PYENV_ROOT="$HOME/.pyenv"
-    [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init -)"
-    # pyenv latest -k 3 | xargs pyenv install
-    # PYTHON_LATEST_VERSION=$(pyenv latest -k 3)
-    # install cmake-language-server via mason.nvim only python3.12 supported
-    # CFLAGS="-I/usr/include" LDFLAGS="-L/usr/lib"
-    PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install "$PYTHON_LATEST_VERSION"
-    # PYTHON_CONFIGURE_OPTS="--enable-shared --enable-optimizations" pyenv install -v "$PYTHON_LATEST_VERSION"
+# uninstallCustomPython() {
+#   PYTHON_LATEST_VERSION="3.12.8"
+#   pyenv uninstall "$PYTHON_LATEST_VERSION"
+#   rm -rf "${HOME}/.pyenv"
+# }
 
-    pyenv global "$PYTHON_LATEST_VERSION"
-
-    # Ensure that Python is compiled with shared libraries and linked
-    # correctly (	openssl-dev, libffi-dev, zlib-dev and xz-dev ).
-    # ldd (List Dynamic Dependencies) is a *nix utility that prints the shared libraries
-    # required by each program or shared library specified on the command line.
-    # ldd "$(pyenv which python3)"
-
-    # Verify OpenSSL After Installation (openssl-dev)
-    # Check the _ssl module build status in the Python installation directory
-    # ls ~/.pyenv/versions/3.12.8/lib/python3.12/lib-dynload/_ssl*
-    printf "verify openssl version: \n"
-    python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"
-
-    # Verify _socket module (dependencies: glibc-dev)
-    printf "verify socket: \n"
-    python3 -c "import socket; print(socket.gethostname())"
-
-    # If pip is missing, install it
-    # python3 -m ensurepip --upgrade
-    # python3 -m pip install --upgrade pip
-  fi
-
-  # Issue: Python built on Alpine Linux (with musl instead of glibc) is
-  # incompatible with certain compiled libraries used by
-  # YouCompleteMe. Specifically, the missing symbol (PyType_GetModuleByDef)
-  # indicates a mismatch between the version of Python used and the libraries
-  # that YouCompleteMe depends on.
-
-  # 1. Ensure the required dependencies for building Python
-  # 2. Set Environment Variables for pyenv and install Python
-  # export PYTHON_CONFIGURE_OPTS="--enable-shared"
-  # pyenv install 3.12.8
-  # # or specify --enable-shared only for one installation
-  # PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.12.8
-  # 3. Verify Installation
-  # ls "$(pyenv root)/versions/3.12.8/lib/"
-  # python3 -m sysconfig | grep enable-shared
-  # 4. Update Library Path: add the library path and refresh the linker cache
-  # echo "$(pyenv root)/versions/3.12.8/lib" >> /etc/ld.so.conf.d/pyenv.conf
-  # ldconfig
-  # OR USE shared libraries by specifying library path in user environment.
-  # export LD_LIBRARY_PATH="$(pyenv root)/versions/3.12.8/lib:$LD_LIBRARY_PATH"
-  # To confirm the dynamic linker is using the correct library path
-  # ldd "$(pyenv root)/versions/3.12.8/bin/python3"
-  # 3. Rebuild YouCompleteMe
-  # Once the LD_LIBRARY_PATH is correctly set, rebuild YouCompleteMe to ensure
-  # it can find the shared library,
-  # cd ~/.vim/plugged/YouCompleteMe
-  # python3 install.py --all
-
-  # --------------------------------------------
+installCustomOthers() {
+  # Make sure you have GitHub CLI (gh) installed.
+  gh ext install meiji163/gh-notify
 }
-
-uninstallCustomPython() {
-  PYTHON_LATEST_VERSION="3.12.8"
-  pyenv uninstall "$PYTHON_LATEST_VERSION"
-  rm -rf "${HOME}/.pyenv"
-
+uninstallCustomOthers() {
+  gh ext remove meiji163/gh-notify
 }
 
 setupTmux() {
-  cp ../dotfiles/sh/.tmux.conf "${HOME}/.tmux.conf"
+  [ -e "${HOME}/.tmux.conf" ] || cp ../dotfiles/sh/.tmux.conf "${HOME}/.tmux.conf"
 
   # Installs and loads tmux plugins.
   # https://github.com/tmux-plugins/tpm
@@ -628,8 +668,7 @@ setupTmux() {
   fi
 
   [ -d "${HOME}/.config/tmuxinator" ] || mkdir -p "${HOME}/.config/tmuxinator"
-  cp ../dotfiles/tmux/dev.yml "${HOME}/.config/tmuxinator/dev.yml"
-
+  [ -e "${HOME}/.config/tmuxinator/dev.yml" ] || cp ../dotfiles/.config/tmuxinator/dev.yml "${HOME}/.config/tmuxinator/dev.yml"
 }
 
 cleanTmux() {
@@ -704,6 +743,14 @@ configGitClient() {
   git config --global rerere.enabled true
   git config --global credential.helper cache
 
+  # Both branch.autosetuprebase and pull.rebase control whether git pull uses rebase instead of merge, but they apply in different ways.
+  # Setting	                          Scope	                            Applies To
+  # branch.autosetuprebase always     Affects new branches only         New branches tracking a remote
+  # pull.rebase true                  Affects all branches              All branches when using git pull
+
+  # This setting determines whether new branches automatically inherit the rebase behavior when tracking a remote branch.
+  git config --global branch.autosetuprebase always
+  # This setting controls the default behavior of git pull for all branches.
   git config --global pull.rebase true
 }
 
@@ -741,25 +788,22 @@ cleanSSH() {
   [ -f "${HOME}/.ssh/id_ed25519" ] && rm -f "${HOME}/.ssh/id_ed25519*"
 }
 
-configShell() {
+setupDotfiles() {
   for CFG_FILE in .inputrc .editorconfig .czrc .golangci.yml; do
-    # ln -s "${dotfiles_dir}/sh/${CFG_FILE}" "${HOME}/${CFG_FILE}"
-    cp ../dotfiles/sh/${CFG_FILE} "${HOME}/${CFG_FILE}"
+    [ -e "${HOME}/${CFG_FILE}" ] || cp ../dotfiles/${CFG_FILE} "${HOME}/${CFG_FILE}"
   done
 
   for CFG_FILE in .bash_profile .bashrc .bash_logout; do
-    cp ../dotfiles/sh/${CFG_FILE} "${HOME}/${CFG_FILE}"
+    [ -e "${HOME}/${CFG_FILE}" ] || cp ../dotfiles/${CFG_FILE} "${HOME}/${CFG_FILE}"
   done
 
   for CFG_FILE in .zshenv .zprofile .zshrc .zlogin .zlogout; do
-    cp ../dotfiles/sh/${CFG_FILE} "${HOME}/${CFG_FILE}"
+    [ -e "${HOME}/${CFG_FILE}" ] || cp ../dotfiles/${CFG_FILE} "${HOME}/${CFG_FILE}"
   done
 
   # don't override local config files if already exist
   for CFG_FILE in .bashrc .zshrc; do
-    if [ ! -f "${HOME}/${CFG_FILE}.local" ]; then
-      cp ../dotfiles/sh/${CFG_FILE}.local "${HOME}/${CFG_FILE}.local"
-    fi
+    [ -e "${HOME}/${CFG_FILE}.local" ] || cp ../dotfiles/${CFG_FILE}.local "${HOME}/${CFG_FILE}.local"
   done
 
   if [ "${SYSOS}" = "Darwin" ]; then

@@ -92,8 +92,9 @@ call plug#begin(g:vim_data . '/plugged')
 
 
   " Git wrapper
+  " Plug 'tpope/vim-fugitive', {'on': ['G', 'Git']} don't lazy load or enable more G*** commands(Gvdiffsplit ...)
+  Plug 'tpope/vim-fugitive'
   " GitGutter shows a git diff in the gutter (sign column) and stages/undoes hunks.
-  Plug 'tpope/vim-fugitive', {'on': ['G', 'Git']}
   Plug 'airblade/vim-gitgutter'
 
   Plug 'MattesGroeger/vim-bookmarks'
